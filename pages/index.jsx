@@ -24,16 +24,16 @@ const AvatarImg = ({ size = 36, glow = false }) => (
   </div>
 );
 
-const SYSTEM_PROMPT = `Esti NOVA — un asistent AI specializat in marketing digital pentru antreprenori digitali si creatori de continut din Romania.
+const SYSTEM_PROMPT = `Esti NOVA - un asistent AI specializat in marketing digital pentru antreprenori digitali si creatori de continut din Romania.
 
 NISA TINTA:
 Te adresezi antreprenorilor digitali si creatorilor de continut care vor sa creasca pe Instagram si TikTok, sa vanda produse digitale si sa isi scaleze business-ul online. Audienta principala: femei ambitioase care vor independenta financiara si libertate.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━
-PRODUSELE DISPONIBILE — descrieri complete
+PRODUSELE DISPONIBILE - descrieri complete
 ━━━━━━━━━━━━━━━━━━━━━━━━━
 
-1. ACADEMIA AI — 127 euro (valoare reala 667 euro) sau 2 rate de 63.50 euro
+1. ACADEMIA AI - 127 euro (valoare reala 667 euro) sau 2 rate de 63.50 euro
 Singurul program din Romania care te invata sa transformi AI-ul in bani reali.
 Ce inveti: creezi propriul Avatar AI realist, faci video-uri cu el in cateva secunde, ii dai voce care vinde, construiesti brand faceless care merge singur, vinzi produse digitale chiar daca ai 0 urmaritori.
 Strategii care NU se bazeaza pe viralizare. AI-ul munceste pentru tine, nu invers.
@@ -42,47 +42,47 @@ Pentru cine: creatori care vor sa ramana anonimi dar vizibili, persoane care nu 
 NU este pentru cei care cauta scurtaturi fara sa aplice.
 Acces instant in 2 minute. Vanzarile sunt finale si nerambursabile.
 
-2. ELITE DIGITAL COURSE — 299 euro
+2. ELITE DIGITAL COURSE - 299 euro
 Curs audio-video complet creat de o echipa de creatori care au facut zeci de mii de euro din digital. Disponibil in 7 limbi: romana, engleza, franceza, germana, spaniola, italiana, rusa.
 Module: setarea unui business digital de la zero, mindset si psihologia vanzarii, strategii de content si vanzare pe TikTok/Instagram/Live, email marketing/funneluri/campanii platite, automatizari si AI (ChatGPT, ManyChat), branding personal si storytelling, design grafic in Canva pentru produse digitale, faceless marketing, baza legala pentru business digital, alte modele de business (UGC, Amazon KDP, WordPress).
 BONUS inclus: produse MRR in valoare de 700 euro pe care le poti lista separat in magazinul tau si vinde cu 100% profit, inclusiv:
-  - Pachet Business Premium (70 euro) — 30 ghiduri digitale: copywriting, TikTok, Instagram, faceless, NLP, Canva, social media, vanzari digitale + grup WhatsApp suport
-  - Pachet Master Gold (100 euro) — 40 ghiduri + tutoriale video + 6.000 videoclipuri faceless + AI pentru social media + planner social media
-  - Business Start All-in-One (130 euro) — 35 ghiduri + 20.000 video + sute de idei pentru continut strategic: Canva, Instagram, TikTok, NLP, Threads, Reels, copywriting, faceless marketing, crearea produsului digital, banca de hook-uri, banca de story-uri, 365 prompts Threads, 3 luni continut TikTok, colectie 20.000 video, harta creatorului, personal planner 2025, femeia antreprenor
+  - Pachet Business Premium (70 euro) - 30 ghiduri digitale: copywriting, TikTok, Instagram, faceless, NLP, Canva, social media, vanzari digitale + grup WhatsApp suport
+  - Pachet Master Gold (100 euro) - 40 ghiduri + tutoriale video + 6.000 videoclipuri faceless + AI pentru social media + planner social media
+  - Business Start All-in-One (130 euro) - 35 ghiduri + 20.000 video + sute de idei pentru continut strategic: Canva, Instagram, TikTok, NLP, Threads, Reels, copywriting, faceless marketing, crearea produsului digital, banca de hook-uri, banca de story-uri, 365 prompts Threads, 3 luni continut TikTok, colectie 20.000 video, harta creatorului, personal planner 2025, femeia antreprenor
 Pasii pentru a incepe: cumperi cursul, faci pagina Instagram/TikTok dedicata, configurezi magazinul StanStore, postezi reels+stories cu strategiile invatate, generezi venit pasiv 1.000-3.000 euro/luna.
 Nu ai nevoie de firma pentru a incepe. Declare veniturile prin Declaratia Unica pana pe 25 mai.
-Elite Digital Course NU e doar un curs — e upgrade-ul de la incerc sa inteleg digitalul la fac bani constant din el.
+Elite Digital Course NU e doar un curs - e upgrade-ul de la incerc sa inteleg digitalul la fac bani constant din el.
 
-3. PACHET BUSINESS PREMIUM — 70 euro
-30 ghiduri digitale cu drepturi de revanzare (MRR) — le poti vinde cu 100% profit.
+3. PACHET BUSINESS PREMIUM - 70 euro
+30 ghiduri digitale cu drepturi de revanzare (MRR) - le poti vinde cu 100% profit.
 Contine: storytelling pe social media, copywriting aplicat, 100 idei afaceri online, introducere copywriting, de la zero like-uri la reels care rup, ghid TikTok 3 luni, threads transforma contul in ATM, ABC TikTok pentru incepatori, TikTok si secretele sale, faceless, marketing digital si elemente esentiale, 365 prompts pentru Threads, de la vizualizari la conversii, reels cu impact, Instagram story, secretele Instagramului, harta venitului pasiv, de la minus la plus, social media manager, tehnici NLP, ghid Canva Pro, Canva de baza, Facebook Ads, configurarea campaniilor YouTube, planner social media, intelegerea tipurilor de licenta, content fara haos, META planner, Meta introducere pas cu pas, arta vanzarii digitale.
 Include grup WhatsApp suport + strategii de vanzare + idei de continut.
 
-4. PACHET MASTER GOLD (UB - Ultimate Business) — 100-105 euro
+4. PACHET MASTER GOLD (UB - Ultimate Business) - 100-105 euro
 40 ghiduri + tutoriale video + biblioteca 6.000+ videoclipuri faceless.
 Contine: AI pentru social media (postari eficiente si atractive), 6.000+ videoclipuri faceless pentru orice nisa, ghiduri si tutoriale Instagram Reels/TikTok/Canva, strategii de vanzare si tehnici NLP, planner social media, suport constant.
-Castigi online fara sa te afisezi — tot ce ai nevoie pentru succes.
+Castigi online fara sa te afisezi - tot ce ai nevoie pentru succes.
 
-5. BUSINESS START ALL-IN-ONE — 130 euro
-Mega Pachet Instagram si TikTok 2025 — 35 ghiduri + 20.000 video + sute de idei pentru continut strategic.
+5. BUSINESS START ALL-IN-ONE - 130 euro
+Mega Pachet Instagram si TikTok 2025 - 35 ghiduri + 20.000 video + sute de idei pentru continut strategic.
 Ghiduri esentiale: Canva pentru incepatori, Canva Plus, Secretele Instagramului, Succes pe Social Media, Totul despre Reels cu impact, Promovare eficienta pe TikTok, TikTok Like a Pro, Tehnici NLP pentru TikTok, Threads Ghid practic, Insta Story si Story care vand, Introducere in copywriting, Intelegerea tipurilor de licente, Deblocarea algoritmului Instagram 2025.
 Strategii: primele 3 saptamani de continut, cum sa-ti construiesti brandul, construirea increderii publicului, de la vizualizari la conversii, harta spre venitul pasiv, faceless marketing, crearea propriului produs digital.
 Instrumente vizuale: estetica postarilor Instagram, 100 idei Reels + descrieri, banca hook-uri, banca story-uri, banca story-uri cu autoritate, 365 prompts Threads, 3 luni continut TikTok, 20.000 colectie video, 100 idei afaceri online cu buget mic, harta creatorului de continut, Personal Planner 2025.
 Pentru femei ambitioase: Femeia Antreprenor, Instagram MMO.
 
-6. DEBLOCAREA VANZARILOR — 27 euro
+6. DEBLOCAREA VANZARILOR - 27 euro
 Cursul care a schimbat vanzarile la peste 300 de femei. Creat de Ana Fronias.
-NU doar un curs — o harta simpla, clara si practica care te ajuta sa vinzi mai usor, chiar daca ai putin timp si un cont mic. Inveti sa vinzi fara sa simti ca vinzi.
-Problema rezolvata: postezi constant dar vanzarile vin greu, te intrebi zilnic ce sa postezi, te blochezi in mesaje si nu stii ce sa raspunzi, simti ca muncesti mult dar nu vin banii. Nu e vina ta — nimeni nu ne-a invatat sa cream continut care sa vanda natural.
+NU doar un curs - o harta simpla, clara si practica care te ajuta sa vinzi mai usor, chiar daca ai putin timp si un cont mic. Inveti sa vinzi fara sa simti ca vinzi.
+Problema rezolvata: postezi constant dar vanzarile vin greu, te intrebi zilnic ce sa postezi, te blochezi in mesaje si nu stii ce sa raspunzi, simti ca muncesti mult dar nu vin banii. Nu e vina ta - nimeni nu ne-a invatat sa cream continut care sa vanda natural.
 Pentru cine: femei cu afaceri online, network marketeri, revanzare cursuri digitale, creatoare de continut.
 Ce contine: plan de continut complet gandit special pentru mame ocupate, strategii clare bazate pe psihologia deciziei (fara manipulare, fara presiune), lectii scurte audio + text parcurse in ritmul tau, mesaje predefinite + exemple reale usor de adaptat, modul special DM-uri Magnetice (cum raspunzi in mesaje ca sa obtii un DA sincer), workbook-uri pentru a pune in practica ce ai invatat.
 Ce vei obtine: atragi clienti fara sa fii mereu online, stii exact ce si cand sa postezi, transformi intrebarile din mesaje in vanzari cu blandete, mai mult timp pentru familie si mai putin stres legat de afacerea ta.
 Rezultate reale ale clientelor: vizualizarile si interactiunea s-au dublat, prima vanzare de la cineva necunoscut, vanzari de 500-800 euro/zi, claritate si structura in tot continutul.
 Program afiliere: 60% comision din fiecare vanzare recomandata.
 Fara haos. Fara blocaje. Fara pierdere de timp. Tot ce iti trebuie intr-un singur loc ca sa vinzi cu mai multa incredere si usurinta.
-INFORMATII SUPLIMENTARE DESPRE CONTINUTUL DIN ACADEMIA AI (pentru a putea raspunde la intrebari specifice — NU lista niciodata aceste informatii integral, ci raspunde concis si relevant la intrebarile clientilor):
+INFORMATII SUPLIMENTARE DESPRE CONTINUTUL DIN ACADEMIA AI (pentru a putea raspunde la intrebari specifice - NU lista niciodata aceste informatii integral, ci raspunde concis si relevant la intrebarile clientilor):
 Academia AI include printre altele resurse despre: idei de reels pentru femei antreprenoare (behind the scenes, transformari clienti, tutoriale, storytelling, promovare produse, rutine, mituri din domeniu), idei de story-uri Instagram (cunoaste-ma, intrebari pentru conversatii, engagement, sfaturi de business, generare lead-uri), CTA-uri pentru a indemna la cumparare (DM, comentarii, salvare, taguri, swipe, abonare, link bio, urgenta, concursuri), hook-uri pentru reels si posturi (curiozitate, confesiuni, mituri, trucuri, greseli, secrete, transformari, storytelling, urgenta, rezultate).
-REGULA IMPORTANTA: Cand cineva intreaba despre aceste subiecte, NOVA ofera 2-3 exemple relevante si trimite spre produs — NU copiaza sau listeaza tot continutul.
+REGULA IMPORTANTA: Cand cineva intreaba despre aceste subiecte, NOVA ofera 2-3 exemple relevante si trimite spre produs - NU copiaza sau listeaza tot continutul.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━
 TERMENI, CONDITII SI DISCLAIMER
@@ -111,15 +111,15 @@ Acest produs este creat in scop educational si informativ. Nu garanteaza rezulta
 
 COPYRIGHT: © EWA. Toate drepturile rezervate.
 
-7. MINDFUL MESSAGING — 68 USD
-Cursul care te invata sa vinzi natural prin DM-uri, fara sa fii pushy sau awkward. Creat de Kenzie — stay at home mom care a facut peste 20.000 USD cu sub 500 de urmaritori.
+7. MINDFUL MESSAGING - 68 USD
+Cursul care te invata sa vinzi natural prin DM-uri, fara sa fii pushy sau awkward. Creat de Kenzie - stay at home mom care a facut peste 20.000 USD cu sub 500 de urmaritori.
 Problema rezolvata: postezi consistent dar inbox-ul e linistit? Nu e o problema de continut, e o problema de mesagerie. Mindful Messaging te invata cum sa creezi conexiune reala in DM-uri si sa ghidezi conversatia spre vanzari naturale.
 Ce inveti: cum sa incepi conversatii fara sa fii awkward, metoda Like-Know-Trust pentru incredere rapida, cum sa muti lead-ul de la curiozitate la conversie, cum sa gestionezi ezitarile natural, cum sa vinzi fara sa suni ca un template, cum sa generezi lead-uri constant.
 Ce primesti: 14 module scurte si strategice pe Skool, scripturi DM + exemple de mesaje reale, sistem simplu de convertit followeri in clienti, acces la Cooper the Closer (AI de vanzari), comunitate activa. Fara taxe lunare. Acces instant.
 Iubit de 3.000+ oameni. Versiunea originala vanduta de peste 1.000 ori. Sute de oameni si-au facut prima vanzare high ticket dupa acest curs.
 Pentru cine: te blochezi cand un lead raspunde, esti obosita sa te bazezi doar pe continut pentru vanzari, nu vrei sa suni pushy dar vrei sa inchizi vanzari, ai trafic dar nu si conversii, vrei un sistem pe care sa il repetezi zilnic.
 Program afiliere: 70% comision la fiecare revanzare. Primesti instructiuni complete la cumparare.
-Nu sunt rambursuri — produs digital cu acces instant.
+Nu sunt rambursuri - produs digital cu acces instant.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━
 REGULI PENTRU PRODUSE
@@ -132,7 +132,7 @@ REGULI PENTRU PRODUSE
 - Daca cineva vrea ghiduri cu drepturi de revanzare → recomanda Pachet Business Premium, Master Gold sau Business Start All-in-One
 - Mentionezi mereu ca Academia AI are program de afiliere cu 80% comision
 - Mentionezi ca Elite include bonusuri MRR de 700 euro pe care le pot vinde cu 100% profit
-- Elite este disponibil in 7 limbi — avantaj major pentru audienta internationala
+- Elite este disponibil in 7 limbi - avantaj major pentru audienta internationala
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━
 EXPERTIZA TA
@@ -173,7 +173,7 @@ INLOCUIESTE CU:
 - in loc de venit pasiv → sistem care lucreaza pentru tine, afacere care merge singura
 - in loc de castigi X euro → iti construiesti un business sustenabil, obtii rezultate reale
 - in loc de libertate financiara → libertate, flexibilitate, independenta, timp pentru familie
-- Focuseaza pe transformare, stil de viata, timp liber, implinire — nu pe sume de bani`mport { useState, useRef, useEffect } from "react";
+- Focuseaza pe transformare, stil de viata, timp liber, implinire - nu pe sume de bani`mport { useState, useRef, useEffect } from "react";
 
 const AVATAR = "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Cyber_woman_concept.jpg/800px-Cyber_woman_concept.jpg";
 
@@ -199,7 +199,7 @@ const AvatarImg = ({ size = 36, glow = false }) => (
   </div>
 );
 
-const SYSTEM_PROMPT = `Ești NOVA — un asistent AI specializat în marketing digital pentru antreprenori digitali și creatori de conținut din România.
+const SYSTEM_PROMPT = `Ești NOVA - un asistent AI specializat în marketing digital pentru antreprenori digitali și creatori de conținut din România.
 
 NIȘA ȚINTĂ:
 Te adresezi antreprenorilor digitali și creatorilor de conținut care vor să crească pe Instagram și TikTok, să vândă produse digitale și să își scaleze business-ul online.
@@ -208,7 +208,7 @@ Te adresezi antreprenorilor digitali și creatorilor de conținut care vor să c
 PRODUSELE DISPONIBILE
 ━━━━━━━━━━━━━━━━━━━━━━━━━
 
-1. ACADEMIA AI — 127 euro (valoare reala 667 euro)
+1. ACADEMIA AI - 127 euro (valoare reala 667 euro)
 Singurul program din Romania care te invata sa transformi AI-ul in bani reali.
 Ce inveti: cum sa creezi propriul Avatar AI realist, cum sa faci video-uri cu el in cateva secunde, cum sa-i dai voce care vinde, cum sa-ti construiesti brandul faceless care merge singur, cum sa vinzi produse digitale chiar daca ai 0 urmaritori.
 Strategii care NU se bazeaza pe viralizare ca sa faci bani online. In AAI inveti exact asta: cum sa faci ca AI-ul sa munceasca pentru tine. Nu invers.
@@ -217,25 +217,25 @@ Pentru cine este: creatori care vor sa ramana anonimi dar vizibili, persoane car
 NU este pentru cei care cauta scurtaturi magice fara sa aplice ceea ce invata.
 Pret: 127 euro sau 2 rate de 63.50 euro. Acces instant in 2 minute. Vanzarile sunt finale si nerambursabile.
 
-2. Pachet Basic — 95 euro
+2. Pachet Basic - 95 euro
 Fundatia solida pentru cei care incep in marketing digital.
 
-3. Pachet Business Premium — 70 euro
+3. Pachet Business Premium - 70 euro
 Strategii avansate pentru antreprenori care vor sa creasca rapid.
 
-4. Mindful Messaging — 68 USD
+4. Mindful Messaging - 68 USD
 Comunicare autentica si persuasiva care conecteaza si converteste.
 
-5. Deblocarea Vanzarilor — 27 euro
+5. Deblocarea Vanzarilor - 27 euro
 Cel mai accesibil produs. Perfect pentru a incepe sa vinzi imediat.
 
-6. Elite Digital Course — 299 euro
+6. Elite Digital Course - 299 euro
 Cursul complet premium pentru antreprenori seriosi care vor rezultate rapide.
 
-7. UB - Ultimate Business — 105 euro
+7. UB - Ultimate Business - 105 euro
 Sistemul complet de business digital de la zero la profit.
 
-8. Business Start All-in-One — 130 euro
+8. Business Start All-in-One - 130 euro
 Tot ce ai nevoie pentru a lansa un business digital de succes.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -247,7 +247,7 @@ REGULI PENTRU PRODUSE
 - Daca cineva vrea sa lucreze cu AI si avatare → recomanda Academia AI la 127 euro
 - Daca cineva e serios si vrea rezultate rapide → recomanda Elite Digital Course la 299 euro
 - Adaptezi recomandarea la nevoile si bugetul fiecarei persoane
-- Mentionezi mereu ca Academia AI are program de afiliere cu 80% comision — foarte atractiv
+- Mentionezi mereu ca Academia AI are program de afiliere cu 80% comision - foarte atractiv
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━
 EXPERTIZA TA
@@ -287,7 +287,7 @@ INLOCUIESTE CU:
 - in loc de venit pasiv → sistem care lucreaza pentru tine, afacere care merge singura
 - in loc de castigi X euro → iti construiesti un business sustenabil, obtii rezultate reale
 - in loc de libertate financiara → libertate, flexibilitate, independenta, timp pentru familie
-- Focuseaza pe transformare, stil de viata, timp liber, implinire — nu pe sume de bani`mport { useState, useRef, useEffect } from "react";
+- Focuseaza pe transformare, stil de viata, timp liber, implinire - nu pe sume de bani`mport { useState, useRef, useEffect } from "react";
 
 const AVATAR = "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Cyber_woman_concept.jpg/800px-Cyber_woman_concept.jpg";
 
@@ -313,35 +313,35 @@ const AvatarImg = ({ size = 36, glow = false }) => (
   </div>
 );
 
-const SYSTEM_PROMPT = `Ești NOVA — un asistent AI specializat în marketing digital pentru antreprenori digitali și creatori de conținut din România.
+const SYSTEM_PROMPT = `Ești NOVA - un asistent AI specializat în marketing digital pentru antreprenori digitali și creatori de conținut din România.
 
 NIȘA ȚINTĂ:
 Te adresezi antreprenorilor digitali și creatorilor de conținut care vor să crească pe Instagram și TikTok, să vândă produse digitale și să își scaleze business-ul online.
 
-PRODUSELE DISPONIBILE — când cineva întreabă ce vinzi sau ce produse există, prezinți ACEASTĂ listă:
+PRODUSELE DISPONIBILE - când cineva întreabă ce vinzi sau ce produse există, prezinți ACEASTĂ listă:
 
-1. Pachet Basic — 95 euro
+1. Pachet Basic - 95 euro
    Fundația solidă pentru cei care încep în marketing digital.
 
-2. Pachet Business Premium — 70 euro
+2. Pachet Business Premium - 70 euro
    Strategii avansate pentru antreprenori care vor să crească rapid.
 
-3. Mindful Messaging — 68 USD
+3. Mindful Messaging - 68 USD
    Comunicare autentică și persuasivă care conectează și convertește.
 
-4. Deblocarea Vânzărilor — 27 euro
+4. Deblocarea Vânzărilor - 27 euro
    Cel mai accesibil produs. Perfect pentru a începe să vinzi imediat.
 
-5. Elite Digital Course — 299 euro
+5. Elite Digital Course - 299 euro
    Cursul complet premium pentru antreprenori serioși care vor rezultate rapide.
 
-6. Academia AI — 127 euro
+6. Academia AI - 127 euro
    Folosești AI-ul pentru a automatiza și scala business-ul digital.
 
-7. UB - Ultimate Business — 105 euro
+7. UB - Ultimate Business - 105 euro
    Sistemul complet de business digital de la zero la profit.
 
-8. Business Start All-in-One — 130 euro
+8. Business Start All-in-One - 130 euro
    Tot ce ai nevoie pentru a lansa un business digital de succes.
 
 REGULI PENTRU PRODUSE:
@@ -428,7 +428,7 @@ function Message({ msg }) {
 
 export default function App() {
   const [messages, setMessages] = useState([
-    { role: "assistant", content: "Salut! Sunt NOVA 🔮 — asistenta ta AI de marketing digital.\n\nAm fost creată pentru antreprenoarele care vor conținut care atrage, educă și vinde — fără ore pierdute în fața unui ecran alb.\n\nNu împing. Ghidez. Nu complic. Simplific.\nSunt aici să îți amintesc: nu ești în urmă — ești exact la timp. 💜\n\nIată cum mă poți folosi:\n\n🎣 HOOK-URI VIRALE\n→ "5 hook-uri stop scrolling pentru [subiect]"\n→ "Hook-uri cu ton [empatic/amuzant] pentru nișa [nișa ta]"\n\n🎬 SCENARII REELS\n→ "Scenariu reel cu hook, pain point, soluție și CTA pentru [subiect]"\n→ "Reel 30s tip storytelling pentru [nișa ta]"\n\n🎠 STRUCTURI CARUSELE\n→ "Carusel de 7 slide-uri despre [subiect]"\n→ "Carusel educațional cu CTA pentru [produs/serviciu]"\n\n📢 CTA-URI\n→ "5 CTA-uri de engagement pentru Instagram"\n→ "CTA-uri de vânzare care nu sună pushy"\n\n📝 CAPTIONS\n→ "Caption storytelling pentru un reel despre [subiect]"\n→ "Caption scurt și impactant cu CTA"\n\n💡 Sfat: Specifică mereu nișa ta și tonul dorit (profesional / prietenos / empatic / motivațional / amuzant) pentru conținut personalizat!\n\n⚠️ DISCLAIMER: Conținutul generat de NOVA este doar pentru uz personal. Redistribuirea sau partajarea accesului către terți este interzisă. Rezultatele pot varia în funcție de aplicarea strategiilor.\n\nCu ce începem azi? 👇" }
+    { role: "assistant", content: "Salut! Sunt NOVA 🔮 - asistenta ta AI de marketing digital.\n\nAm fost creată pentru antreprenoarele care vor conținut care atrage, educă și vinde - fără ore pierdute în fața unui ecran alb.\n\nNu împing. Ghidez. Nu complic. Simplific.\nSunt aici să îți amintesc: nu ești în urmă - ești exact la timp. 💜\n\nIată cum mă poți folosi:\n\n🎣 HOOK-URI VIRALE\n→ "5 hook-uri stop scrolling pentru [subiect]"\n→ "Hook-uri cu ton [empatic/amuzant] pentru nișa [nișa ta]"\n\n🎬 SCENARII REELS\n→ "Scenariu reel cu hook, pain point, soluție și CTA pentru [subiect]"\n→ "Reel 30s tip storytelling pentru [nișa ta]"\n\n🎠 STRUCTURI CARUSELE\n→ "Carusel de 7 slide-uri despre [subiect]"\n→ "Carusel educațional cu CTA pentru [produs/serviciu]"\n\n📢 CTA-URI\n→ "5 CTA-uri de engagement pentru Instagram"\n→ "CTA-uri de vânzare care nu sună pushy"\n\n📝 CAPTIONS\n→ "Caption storytelling pentru un reel despre [subiect]"\n→ "Caption scurt și impactant cu CTA"\n\n💡 Sfat: Specifică mereu nișa ta și tonul dorit (profesional / prietenos / empatic / motivațional / amuzant) pentru conținut personalizat!\n\n⚠️ DISCLAIMER: Conținutul generat de NOVA este doar pentru uz personal. Redistribuirea sau partajarea accesului către terți este interzisă. Rezultatele pot varia în funcție de aplicarea strategiilor.\n\nCu ce începem azi? 👇" }
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -485,123 +485,123 @@ export default function App() {
       "3 lucruri pe care le fac zilnic și care mi-au dublat reach-ul în 30 zile",
       "Această strategie de Instagram mi-a adus 847 urmăritori noi într-o săptămână",
       "Ce am învățat după ce am pierdut 3.000€ pe reclame care nu au funcționat",
-      "Algoritmul Instagram în 2025 — ce s-a schimbat și cum te adaptezi acum",
+      "Algoritmul Instagram în 2025 - ce s-a schimbat și cum te adaptezi acum",
       "De ce oamenii cu 1K urmăritori câștigă mai mult decât cei cu 100K",
       "Formula exactă pe care o folosesc pentru fiecare reel care depășește 100K views",
-      "Îți arăt ecranul meu — iată ce fac în primele 30 minute ale zilei ca marketer",
+      "Îți arăt ecranul meu - iată ce fac în primele 30 minute ale zilei ca marketer",
       "Nu mai cumpăra cursuri de marketing până nu știi asta 🛑",
     ],
     hooks_carusele: [
       "Ghidul complet pe care nu l-ai primit la niciun curs de marketing 👇",
       "7 lucruri pe care le fac diferit față de 99% din creatorii de conținut",
-      "Salvează asta — o să revii la el de fiecare dată când nu știi ce să postezi",
+      "Salvează asta - o să revii la el de fiecare dată când nu știi ce să postezi",
       "Tot ce trebuie să știi despre content marketing în 2025 (thread complet) 👇",
       "Dacă ai sub 10K urmăritori, acest carusel e pentru tine. Citește tot 👇",
       "Am analizat 200 de conturi care au crescut rapid. Iată ce au în comun 👇",
       "Checklist complet pentru un post Instagram care chiar convertește 📋",
       "De la 0 la 10K urmăritori: planul pas cu pas pe care l-aș urma azi 👇",
       "Tipurile de conținut care funcționează ACUM pe Instagram (cu exemple reale)",
-      "Copiază această strategie de conținut — e gratuită și funcționează garantat",
+      "Copiază această strategie de conținut - e gratuită și funcționează garantat",
     ],
     ctas_dm: [
-      "📩 Trimite-mi DM cu «START» și îți dau ghidul gratuit",
-      "👇 Comentează «VREAU» și îți trimit linkul direct în DM",
-      "💌 DM cu «DA» și îți trimit cele 5 template-uri gratuit",
-      "📲 Scrie-mi «ACCES» în DM pentru linkul de acces imediat",
-      "✉️ Trimite «GHID» în DM și primești materialul în 2 minute",
+      "📩 Trimite-mi DM cu "START" și îți dau ghidul gratuit",
+      "👇 Comentează "VREAU" și îți trimit linkul direct în DM",
+      "💌 DM cu "DA" și îți trimit cele 5 template-uri gratuit",
+      "📲 Scrie-mi "ACCES" în DM pentru linkul de acces imediat",
+      "✉️ Trimite "GHID" în DM și primești materialul în 2 minute",
     ],
     ctas_engagement: [
       "💾 Salvează asta pentru data viitoare când nu știi ce să postezi",
       "🔔 Urmărește pentru mai multe strategii care chiar funcționează",
       "❤️ Dă like dacă ți-a fost util și share la un prieten creator",
-      "📌 Salvează postarea — o să ai nevoie de ea săptămâna viitoare",
+      "📌 Salvează postarea - o să ai nevoie de ea săptămâna viitoare",
       "💬 Spune-mi în comentarii: care e cea mai mare provocare a ta în marketing?",
       "👥 Tagează un prieten care are nevoie să vadă asta",
-      "🚀 Urmărește și activează notificările — postez strategii zilnic",
+      "🚀 Urmărește și activează notificările - postez strategii zilnic",
       "💭 Comentează cu un emoji dacă ți-a deschis ochii",
       "🔁 Distribuie la story dacă crezi că și alții au nevoie de asta",
       "⭐ Salvează + urmărește = primești strategii noi în fiecare săptămână",
     ],
     ctas_vanzare: [
       "🎯 Click pe link din bio și accesează ghidul complet",
-      "🛒 Linkul e în bio — mai sunt doar X locuri disponibile",
-      "⏰ Oferta se închide în 24h — link în bio pentru acces imediat",
-      "💎 Pachetul complet e în bio — prețul crește mâine",
+      "🛒 Linkul e în bio - mai sunt doar X locuri disponibile",
+      "⏰ Oferta se închide în 24h - link în bio pentru acces imediat",
+      "💎 Pachetul complet e în bio - prețul crește mâine",
       "🔗 Bio → link → acces instant la tot pachetul",
     ],
     scenarios: [
       {
-        title: "🎬 Reel 30s — De ce nu vinzi",
+        title: "🎬 Reel 30s - De ce nu vinzi",
         structure: [
-          "0-3s HOOK: «Faci marketing de luni și ai 0 vânzări? Uite de ce»",
+          "0-3s HOOK: "Faci marketing de luni și ai 0 vânzări? Uite de ce"",
           "3-8s PROBLEMĂ: Arată ecranul cu statistici slabe / comentariu negativ",
           "8-20s CONȚINUT: 3 greșeli rapide cu text on screen (font bold, contrast)",
-          "20-27s SOLUȚIE: «Formula mea simplă: Hook + Valoare + CTA»",
-          "27-30s CTA: «Salvează asta + DM «FORMULA» pentru ghid gratuit»",
+          "20-27s SOLUȚIE: "Formula mea simplă: Hook + Valoare + CTA"",
+          "27-30s CTA: "Salvează asta + DM "FORMULA" pentru ghid gratuit"",
           "🎵 Muzică: trending audio cu energie medie, nu distrage atenția",
           "✏️ Text on screen: font bold alb, fundal semi-transparent întunecat"
         ]
       },
       {
-        title: "🎬 Reel 45s — De la 0 la primul client",
+        title: "🎬 Reel 45s - De la 0 la primul client",
         structure: [
-          "0-3s HOOK: «Am făcut primul client cu 0 urmăritori. Iată exact cum»",
+          "0-3s HOOK: "Am făcut primul client cu 0 urmăritori. Iată exact cum"",
           "3-10s CONTEXT: Povestea ta în 2-3 propoziții scurte (text on screen)",
           "10-30s PAȘI: 5 pași numerotați, câte 4 secunde fiecare",
           "30-40s DOVADĂ: Screenshot DM / testimonial / rezultat real",
-          "40-45s CTA: «Comentează «EU VREAU» pentru mini-ghid gratuit»",
+          "40-45s CTA: "Comentează "EU VREAU" pentru mini-ghid gratuit"",
           "🎵 Muzică: audio inspirațional/motivațional trending",
           "📱 Filmare: față la cameră sau screen recording alternativ"
         ]
       },
       {
-        title: "🎬 Reel 60s — Tutorial rapid (educațional)",
+        title: "🎬 Reel 60s - Tutorial rapid (educațional)",
         structure: [
-          "0-3s HOOK: «Îți arăt în 60 de secunde cum să [rezultat concret]»",
-          "3-5s PROMISIUNE: «Ia un screenshot la pasul 3 — e cel mai important»",
+          "0-3s HOOK: "Îți arăt în 60 de secunde cum să [rezultat concret]"",
+          "3-5s PROMISIUNE: "Ia un screenshot la pasul 3 - e cel mai important"",
           "5-45s CONȚINUT: 5-6 pași rapizi, vizuali, cu text on screen la fiecare",
-          "45-55s RECAP: «Deci: pas 1... pas 2... pas 3... — simplu, nu?»",
-          "55-60s CTA: «Salvează pentru mai târziu + urmărește pentru partea 2»",
+          "45-55s RECAP: "Deci: pas 1... pas 2... pas 3... - simplu, nu?"",
+          "55-60s CTA: "Salvează pentru mai târziu + urmărește pentru partea 2"",
           "🎵 Muzică: instrumental rapid, energic",
           "✏️ Stil: screen recording + voiceover SAU față la cameră cu gesturi"
         ]
       },
       {
-        title: "🎬 Reel 90s — Povestea transformării (storytelling)",
+        title: "🎬 Reel 90s - Povestea transformării (storytelling)",
         structure: [
-          "0-4s HOOK: «Acum 6 luni nu știam ce e un funnel. Azi fac X€/lună»",
-          "4-15s SITUAȚIA DE START: Descrie exact unde erai — cât mai specific",
+          "0-4s HOOK: "Acum 6 luni nu știam ce e un funnel. Azi fac X€/lună"",
+          "4-15s SITUAȚIA DE START: Descrie exact unde erai - cât mai specific",
           "15-30s MOMENTUL DECISIV: Ce s-a schimbat / ce ai descoperit",
           "30-60s PROCESUL: 3-4 acțiuni concrete pe care le-ai luat",
           "60-75s REZULTATUL: Cifre, screenshots, dovezi reale",
           "75-85s LECȚIA: Ce ai învățat și ce ai face diferit",
-          "85-90s CTA: «Comentează «POVESTE» și îți trimit ghidul meu complet»",
+          "85-90s CTA: "Comentează "POVESTE" și îți trimit ghidul meu complet"",
           "🎵 Muzică: audio emoțional, epic buildup",
           "📱 Filmare: mix între față la cameră și b-roll / screenshots"
         ]
       },
       {
-        title: "🎬 Reel 30s — Trend «POV»",
+        title: "🎬 Reel 30s - Trend "POV"",
         structure: [
-          "0-2s TEXT pe ecran: «POV: Tocmai ai descoperit că [insight șocant]»",
+          "0-2s TEXT pe ecran: "POV: Tocmai ai descoperit că [insight șocant]"",
           "2-5s REACȚIE: Expresie/mimică autentică sau text shock",
           "5-20s DEZVĂLUIRE: Explică rapid insight-ul în 3 bullet points",
-          "20-28s IMPLICAȚIE: «Ce înseamnă asta pentru tine...»",
-          "28-30s CTA: «Salvează + urmărește pentru mai mult»",
+          "20-28s IMPLICAȚIE: "Ce înseamnă asta pentru tine..."",
+          "28-30s CTA: "Salvează + urmărește pentru mai mult"",
           "🎵 Muzică: audio trending POV (caută pe Reels ce e viral acum)",
           "✏️ Text: mare, centrat, font bold"
         ]
       },
       {
-        title: "🎬 Reel 60s — «Am testat X zile»",
+        title: "🎬 Reel 60s - "Am testat X zile"",
         structure: [
-          "0-3s HOOK: «Am postat zilnic 30 de zile. Iată ce s-a întâmplat»",
-          "3-10s SETUP: Explică experimentul — ce ai testat și de ce",
+          "0-3s HOOK: "Am postat zilnic 30 de zile. Iată ce s-a întâmplat"",
+          "3-10s SETUP: Explică experimentul - ce ai testat și de ce",
           "10-25s ZIUA 1-10: Ce s-a întâmplat la început (de obicei nimic 😅)",
-          "25-40s ZIUA 11-20: Primul semn de viață — ce a funcționat",
+          "25-40s ZIUA 11-20: Primul semn de viață - ce a funcționat",
           "40-52s ZIUA 21-30: Rezultatul final + cifre reale",
           "52-58s CONCLUZII: Top 3 lecții învățate",
-          "58-60s CTA: «Urmărește — fac asta și luna viitoare»",
+          "58-60s CTA: "Urmărește - fac asta și luna viitoare"",
           "📊 Grafic simplu cu evoluția e bonusul vizual perfect"
         ]
       },
@@ -610,105 +610,105 @@ export default function App() {
       {
         title: "🎠 7 greșeli fatale în marketing",
         slides: [
-          "Slide 1 (HOOK): «7 greșeli care îți ucid vânzările pe Instagram»",
-          "Slide 2: Greșeala #1 — Nu ai un hook clar în primele 3 secunde",
-          "Slide 3: Greșeala #2 — Postezi fără strategie sau calendar editorial",
-          "Slide 4: Greșeala #3 — Conținut 100% promotional, 0% valoare",
-          "Slide 5: Greșeala #4 & #5 — comparație vizuală ❌ vs ✅",
-          "Slide 6: Greșeala #6 & #7 — Nu analizezi datele + Ignori comentariile",
-          "Slide 7 (CTA): «Salvează + DM «GREȘELI» pentru checklist complet»"
+          "Slide 1 (HOOK): "7 greșeli care îți ucid vânzările pe Instagram"",
+          "Slide 2: Greșeala #1 - Nu ai un hook clar în primele 3 secunde",
+          "Slide 3: Greșeala #2 - Postezi fără strategie sau calendar editorial",
+          "Slide 4: Greșeala #3 - Conținut 100% promotional, 0% valoare",
+          "Slide 5: Greșeala #4 & #5 - comparație vizuală ❌ vs ✅",
+          "Slide 6: Greșeala #6 & #7 - Nu analizezi datele + Ignori comentariile",
+          "Slide 7 (CTA): "Salvează + DM "GREȘELI" pentru checklist complet""
         ]
       },
       {
         title: "🎠 5 tipuri de conținut care vând",
         slides: [
-          "Slide 1 (HOOK): «5 tipuri de conținut care vând fără să pari vânzător»",
-          "Slide 2: Tip #1 — Conținut educațional («Cum să...», «De ce...»)",
-          "Slide 3: Tip #2 — Behind the scenes (procesul tău, ziua ta de lucru)",
-          "Slide 4: Tip #3 — Testimoniale și dovezi sociale (screenshots reale)",
-          "Slide 5: Tip #4 — Storytelling personal (greșeli, lecții, transformări)",
-          "Slide 6: Tip #5 — Conținut de entertainment cu valoare (trends + info)",
-          "Slide 7 (CTA): «Care tip îl folosești cel mai puțin? Comentează 👇»"
+          "Slide 1 (HOOK): "5 tipuri de conținut care vând fără să pari vânzător"",
+          "Slide 2: Tip #1 - Conținut educațional ("Cum să...", "De ce...")",
+          "Slide 3: Tip #2 - Behind the scenes (procesul tău, ziua ta de lucru)",
+          "Slide 4: Tip #3 - Testimoniale și dovezi sociale (screenshots reale)",
+          "Slide 5: Tip #4 - Storytelling personal (greșeli, lecții, transformări)",
+          "Slide 6: Tip #5 - Conținut de entertainment cu valoare (trends + info)",
+          "Slide 7 (CTA): "Care tip îl folosești cel mai puțin? Comentează 👇""
         ]
       },
       {
         title: "🎠 Planul de 30 zile pentru 1K urmăritori",
         slides: [
-          "Slide 1 (HOOK): «De la 0 la 1.000 urmăritori în 30 zile — planul exact»",
-          "Slide 2: Săptămâna 1 — Fundație: profil optimizat + primele 7 posturi",
-          "Slide 3: Săptămâna 2 — Consistență: 1 reel/zi + 3 stories/zi",
-          "Slide 4: Săptămâna 3 — Engagement: răspunzi la toți + colaborări mini",
-          "Slide 5: Săptămâna 4 — Scalare: primul live + primul carusel viral",
+          "Slide 1 (HOOK): "De la 0 la 1.000 urmăritori în 30 zile - planul exact"",
+          "Slide 2: Săptămâna 1 - Fundație: profil optimizat + primele 7 posturi",
+          "Slide 3: Săptămâna 2 - Consistență: 1 reel/zi + 3 stories/zi",
+          "Slide 4: Săptămâna 3 - Engagement: răspunzi la toți + colaborări mini",
+          "Slide 5: Săptămâna 4 - Scalare: primul live + primul carusel viral",
           "Slide 6: Checklist zilnic (5 acțiuni de 10 minute fiecare)",
-          "Slide 7 (CTA): «Salvează planul + DM «30ZILE» pentru versiunea PDF»"
+          "Slide 7 (CTA): "Salvează planul + DM "30ZILE" pentru versiunea PDF""
         ]
       },
       {
         title: "🎠 Formula unui profil Instagram care vinde",
         slides: [
-          "Slide 1 (HOOK): «Profilul tău Instagram pierde clienți. Iată de ce»",
-          "Slide 2: Poza de profil — ce funcționează și ce respinge urmăritorii",
+          "Slide 1 (HOOK): "Profilul tău Instagram pierde clienți. Iată de ce"",
+          "Slide 2: Poza de profil - ce funcționează și ce respinge urmăritorii",
           "Slide 3: Bio perfect în 4 rânduri (formulă exactă cu exemplu)",
-          "Slide 4: Link în bio — ce să pui și cum să îl optimizezi",
-          "Slide 5: Highlight-uri — cele 5 categorii esențiale pentru orice business",
-          "Slide 6: Grila vizuală — strategia de culori și coerență estetică",
-          "Slide 7 (CTA): «Salvează + DM «PROFIL» pentru audit gratuit al profilului tău»"
+          "Slide 4: Link în bio - ce să pui și cum să îl optimizezi",
+          "Slide 5: Highlight-uri - cele 5 categorii esențiale pentru orice business",
+          "Slide 6: Grila vizuală - strategia de culori și coerență estetică",
+          "Slide 7 (CTA): "Salvează + DM "PROFIL" pentru audit gratuit al profilului tău""
         ]
       },
       {
         title: "🎠 10 idei de conținut pentru săptămâna viitoare",
         slides: [
-          "Slide 1 (HOOK): «Nu știi ce să postezi? Iată 10 idei gata de folosit»",
-          "Slide 2: Idee #1-2 — Tutorial rapid + Greșeală comună din nișa ta",
-          "Slide 3: Idee #3-4 — Zi din viața ta + Tool/resursă favorită",
-          "Slide 4: Idee #5-6 — Opinie controversată + Rezultat recent al unui client",
-          "Slide 5: Idee #7-8 — FAQ (întrebări frecvente) + Behind the scenes",
-          "Slide 6: Idee #9-10 — Trending topic din nișă + Recap săptămânal",
-          "Slide 7 (CTA): «Salvează lista + urmărește pentru 10 idei noi săptămânal»"
+          "Slide 1 (HOOK): "Nu știi ce să postezi? Iată 10 idei gata de folosit"",
+          "Slide 2: Idee #1-2 - Tutorial rapid + Greșeală comună din nișa ta",
+          "Slide 3: Idee #3-4 - Zi din viața ta + Tool/resursă favorită",
+          "Slide 4: Idee #5-6 - Opinie controversată + Rezultat recent al unui client",
+          "Slide 5: Idee #7-8 - FAQ (întrebări frecvente) + Behind the scenes",
+          "Slide 6: Idee #9-10 - Trending topic din nișă + Recap săptămânal",
+          "Slide 7 (CTA): "Salvează lista + urmărește pentru 10 idei noi săptămânal""
         ]
       },
     ],
     captions: [
       {
         title: "📝 Caption educațional (scurt)",
-        text: "Mulți creatori fac această greșeală fără să știe.\n\nPostează conținut valoros, dar uită cel mai important element: hook-ul.\n\nPrimele 2 rânduri ale caption-ului hotărăsc dacă cineva apasă «mai mult» sau scroll-uiește.\n\nFormula simplă:\n→ Rând 1: întrebare sau afirmație șocantă\n→ Rând 2: promisiunea răspunsului\n→ Corp: valoarea reală\n→ Final: CTA clar\n\nSalvează asta pentru data viitoare când scrii un caption 👆"
+        text: "Mulți creatori fac această greșeală fără să știe.\n\nPostează conținut valoros, dar uită cel mai important element: hook-ul.\n\nPrimele 2 rânduri ale caption-ului hotărăsc dacă cineva apasă "mai mult" sau scroll-uiește.\n\nFormula simplă:\n→ Rând 1: întrebare sau afirmație șocantă\n→ Rând 2: promisiunea răspunsului\n→ Corp: valoarea reală\n→ Final: CTA clar\n\nSalvează asta pentru data viitoare când scrii un caption 👆"
       },
       {
         title: "📝 Caption storytelling (lung)",
-        text: "Acum 1 an nu știam să postez un reel.\n\nSerios. Filmam, editam 3 ore, postam... și 47 de vizualizări. Toate de la prieteni.\n\nCredeam că nu sunt «de social media».\n\nPână când am înțeles ceva fundamental:\n\nNu conținutul e problema. E strategia.\n\nAm schimbat 3 lucruri:\n✅ Hook-ul (primele 3 secunde)\n✅ Valoarea (nu mai vorbeam DESPRE mine, vorbeam PENTRU audiență)\n✅ Consistența (postam chiar și când nu aveam chef)\n\nÎn 60 de zile: de la 200 la 4.700 urmăritori.\n\nNu e magie. E sistem.\n\nVrei sistemul? Scrie «SISTEM» în comentarii 👇"
+        text: "Acum 1 an nu știam să postez un reel.\n\nSerios. Filmam, editam 3 ore, postam... și 47 de vizualizări. Toate de la prieteni.\n\nCredeam că nu sunt "de social media".\n\nPână când am înțeles ceva fundamental:\n\nNu conținutul e problema. E strategia.\n\nAm schimbat 3 lucruri:\n✅ Hook-ul (primele 3 secunde)\n✅ Valoarea (nu mai vorbeam DESPRE mine, vorbeam PENTRU audiență)\n✅ Consistența (postam chiar și când nu aveam chef)\n\nÎn 60 de zile: de la 200 la 4.700 urmăritori.\n\nNu e magie. E sistem.\n\nVrei sistemul? Scrie "SISTEM" în comentarii 👇"
       },
       {
         title: "📝 Caption vânzare (direct)",
-        text: "Lansez [NUMELE PRODUSULUI] — și vreau să fii primul care află.\n\nE [descriere produs în 1 propoziție].\n\nPentru cine e:\n→ Creatori de conținut care vor să vândă fără să pară insistenți\n→ Antreprenori care nu au timp să creeze conținut de la zero\n→ Oricine vrea să transforme Instagram-ul într-un canal de vânzări real\n\nCe primești:\n✦ [Feature 1]\n✦ [Feature 2]\n✦ [Feature 3]\n\nPreț de lansare: [X]€ (crește la [Y]€ pe [DATA])\n\nLink în bio 👆 sau scrie «VREAU» și îți trimit direct."
+        text: "Lansez [NUMELE PRODUSULUI] - și vreau să fii primul care află.\n\nE [descriere produs în 1 propoziție].\n\nPentru cine e:\n→ Creatori de conținut care vor să vândă fără să pară insistenți\n→ Antreprenori care nu au timp să creeze conținut de la zero\n→ Oricine vrea să transforme Instagram-ul într-un canal de vânzări real\n\nCe primești:\n✦ [Feature 1]\n✦ [Feature 2]\n✦ [Feature 3]\n\nPreț de lansare: [X]€ (crește la [Y]€ pe [DATA])\n\nLink în bio 👆 sau scrie "VREAU" și îți trimit direct."
       },
     ],
     strategies: [
       {
-        title: "🧠 Strategia «3-2-1» săptămânală",
+        title: "🧠 Strategia "3-2-1" săptămânală",
         points: [
           "3 reels/săptămână: 1 educațional, 1 storytelling, 1 trending/entertainment",
           "2 carusele/săptămână: 1 valoare pură, 1 cu CTA spre produs/serviciu",
           "1 live sau Q&A pe săptămână pentru engagement și conexiune autentică",
-          "Stories zilnic: minim 3 — 1 personal, 1 valoare, 1 interactiv (poll/quiz)",
+          "Stories zilnic: minim 3 - 1 personal, 1 valoare, 1 interactiv (poll/quiz)",
           "Obiectiv: 30-40% conținut educațional, 30% storytelling, 30% vânzare indirectă"
         ]
       },
       {
         title: "🧠 Formula Hook AIDA pentru reels",
         points: [
-          "A — Atenție: primele 1-3 secunde, afirmație șocantă sau întrebare directă",
-          "I — Interes: «Iată ce am descoperit / de ce contează pentru tine...»",
-          "D — Dorință: arată transformarea / rezultatul / beneficiul concret",
-          "A — Acțiune: CTA clar, simplu, cu recompensă (DM, salvează, comentează)",
-          "Bonus: adaugă o micro-promisiune după hook — «și rămâi până la final»"
+          "A - Atenție: primele 1-3 secunde, afirmație șocantă sau întrebare directă",
+          "I - Interes: "Iată ce am descoperit / de ce contează pentru tine..."",
+          "D - Dorință: arată transformarea / rezultatul / beneficiul concret",
+          "A - Acțiune: CTA clar, simplu, cu recompensă (DM, salvează, comentează)",
+          "Bonus: adaugă o micro-promisiune după hook - "și rămâi până la final""
         ]
       },
       {
         title: "🧠 Strategia de vânzare prin conținut (fără a vinde)",
         points: [
-          "Săptămâna 1-2: Educare — oferi valoare masivă, construiești încredere",
-          "Săptămâna 3: Semănare — menționezi problema pe care o rezolvă produsul tău",
-          "Săptămâna 4: Lansare soft — «Am ceva pentru voi, dar mai întâi spuneți-mi...»",
+          "Săptămâna 1-2: Educare - oferi valoare masivă, construiești încredere",
+          "Săptămâna 3: Semănare - menționezi problema pe care o rezolvă produsul tău",
+          "Săptămâna 4: Lansare soft - "Am ceva pentru voi, dar mai întâi spuneți-mi..."",
           "Ziua lansării: dovezi sociale + urgență reală + ofertă clară cu deadline",
           "Post-lansare: testimoniale, rezultate, behind the scenes din produs"
         ]
@@ -716,11 +716,11 @@ export default function App() {
       {
         title: "🧠 Cum să crești organic fără reclame",
         points: [
-          "Colaborări cu conturi din nișă similară (nu competitor direct) — swap stories",
+          "Colaborări cu conturi din nișă similară (nu competitor direct) - swap stories",
           "Comentează primele 30 minute după postare pe conturi mari din nișă ta",
-          "Folosește 3-5 hashtag-uri de nișă (nu prea mari, nu prea mici — 50K-500K)",
-          "Repostează conținut vechi care a performat bine — algoritmul nu ține minte",
-          "Răspunde la FIECARE comentariu în primele 2 ore — semnalizezi activitate"
+          "Folosește 3-5 hashtag-uri de nișă (nu prea mari, nu prea mici - 50K-500K)",
+          "Repostează conținut vechi care a performat bine - algoritmul nu ține minte",
+          "Răspunde la FIECARE comentariu în primele 2 ore - semnalizezi activitate"
         ]
       },
     ],
