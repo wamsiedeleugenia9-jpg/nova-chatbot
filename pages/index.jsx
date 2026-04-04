@@ -115,13 +115,11 @@ export default function App() {
     setInput("");
     setLoading(true);
     try {
-      const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": "Bearer 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",
-          "HTTP-Referer": "https://nova-chatbot-ten.vercel.app",
-          "X-Title": "NOVA Marketing AI"
+          "Authorization": "Bearer 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",
         },
         body: JSON.stringify({
           model: "anthropic/claude-3-5-haiku",
