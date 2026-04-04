@@ -119,7 +119,7 @@ export default function App() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": "Bearer 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",
+          "Authorization": "Bearer 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",
           "HTTP-Referer": "https://nova-chatbot-ten.vercel.app",
           "X-Title": "NOVA Marketing AI"
         },
