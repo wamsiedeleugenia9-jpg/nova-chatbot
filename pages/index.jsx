@@ -43,7 +43,7 @@ export default function App() {
     try {
       const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": "Bearer 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" },
+        headers: { "Content-Type": "application/json", "Authorization": "Bearer " + process.env.NEXT_PUBLIC_GROQ_API_KEY },
         body: JSON.stringify({ model: "llama-3.1-8b-instant", max_tokens: 1000, messages: [{ role: "system", content: SYSTEM_PROMPT }, ...newMsgs.map(m => ({ role: m.role, content: m.content }))] })
       });
       const data = await res.json();
