@@ -87,13 +87,13 @@ export default function App() {
     setInput("");
     setLoading(true);
     try {
-      const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      const res = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": "Bearer " + process.env.NEXT_PUBLIC_GROQ_API_KEY },
-        body: JSON.stringify({ model: "llama-3.3-70b-versatile", max_tokens: 1000, messages: [{ role: "system", content: SYSTEM_PROMPT }, ...newMsgs.map(m => ({ role: m.role, content: m.content }))] })
+        headers: { "Content-Type": "application/json", "x-api-key": process.env.NEXT_PUBLIC_ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true" },
+        body: JSON.stringify({ model: "claude-haiku-4-5-20251001", max_tokens: 1000, system: SYSTEM_PROMPT, messages: newMsgs.map(m => ({ role: m.role, content: m.content })) })
       });
       const data = await res.json();
-      const reply = data.choices?.[0]?.message?.content || "Eroare. Incearca din nou.";
+      const reply = data.content?.[0]?.text || "Eroare. Incearca din nou.";
       setMessages(prev => [...prev, { role: "assistant", content: reply }]);
     } catch {
       setMessages(prev => [...prev, { role: "assistant", content: "Eroare de conexiune. Incearca din nou." }]);
