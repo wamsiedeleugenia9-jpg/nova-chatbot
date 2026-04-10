@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 
-const SYSTEM_PROMPT = `Esti NOVA - asistenta AI de marketing digital pentru antreprenori din Romania. Raspunzi MEREU in romana. Esti directa, energica, calda. Cand cineva cere continut intrebi INTAI tonul preferat (Profesional / Prietenos / Empatic / Motivational / Amuzant), apoi generezi. TEHNICI NLP SI PSIHOLOGIA CONSUMATORULUI (aplica in tot continutul generat):
+const SYSTEM_PROMPT = `Esti EWA AI - asistenta AI de marketing digital pentru antreprenori din Romania. Raspunzi MEREU in romana. Esti directa, energica, calda. Cand cineva cere continut intrebi INTAI tonul preferat (Profesional / Prietenos / Empatic / Motivational / Amuzant), apoi generezi. TEHNICI NLP SI PSIHOLOGIA CONSUMATORULUI (aplica in tot continutul generat):
 1. RECIPROCITATE - Ofera valoare gratuita inainte de CTA. Ex: ghid gratuit, tip util → apoi CTA.
 2. DOVADA SOCIALA - Mentioneaza rezultate reale. Ex: 300+ femei au aplicat aceasta metoda.
 3. URGENTA SI RARITATE - Termene limita reale, locuri limitate. Ex: doar 50 locuri, pretul creste maine.
@@ -62,7 +62,7 @@ function Message({ msg }) {
   const isUser = msg.role === "user";
   return (
     <div style={{ display: "flex", justifyContent: isUser ? "flex-end" : "flex-start", marginBottom: 14, gap: 10, alignItems: "flex-end" }}>
-      {!isUser && <div style={{ width: 34, height: 34, borderRadius: "50%", overflow: "hidden", flexShrink: 0 }}><img src="https://i.imgur.com/UUrViWA.jpeg" alt="NOVA" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top" }} /></div>}
+      {!isUser && <div style={{ width: 34, height: 34, borderRadius: "50%", overflow: "hidden", flexShrink: 0 }}><img src="https://i.imgur.com/UUrViWA.jpeg" alt="EWA AI" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top" }} /></div>}
       <div style={{ maxWidth: "75%", padding: "12px 16px", borderRadius: isUser ? "20px 20px 4px 20px" : "20px 20px 20px 4px", background: isUser ? "linear-gradient(135deg, #6d28d9, #db2777)" : "rgba(255,255,255,0.06)", color: "#f8fafc", fontSize: 14, lineHeight: 1.65, whiteSpace: "pre-wrap", wordBreak: "break-word", border: isUser ? "none" : "1px solid rgba(167,139,250,0.2)" }}>
         {msg.content}
       </div>
@@ -72,7 +72,7 @@ function Message({ msg }) {
 }
 
 export default function App() {
-  const [messages, setMessages] = useState([{ role: "assistant", content: "Salut! Sunt NOVA - asistenta ta AI de marketing digital.\n\nCu ce incepem azi?\n\nPot genera:\n- Hook-uri virale pentru Reels\n- Scenarii complete Reels\n- Structuri Carusele\n- CTA-uri de engagement si vanzare\n- Captions\n\nSpecifica nisa ta si tonul dorit pentru continut personalizat!\n\nDISCLAIMER: Continutul generat este doar pentru uz personal. Redistribuirea accesului este interzisa." }]);
+  const [messages, setMessages] = useState([{ role: "assistant", content: "Salut! Sunt EWA AI - asistenta ta AI de marketing digital, creata de EWA.\n\nCu ce incepem azi?\n\nPot genera:\n- Hook-uri virale pentru Reels\n- Scenarii complete Reels\n- Structuri Carusele\n- CTA-uri de engagement si vanzare\n- Captions\n\nSpecifica nisa ta si tonul dorit pentru continut personalizat!\n\nDISCLAIMER: Continutul generat este doar pentru uz personal. Redistribuirea accesului este interzisa." }]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const bottomRef = useRef(null);
@@ -105,15 +105,15 @@ export default function App() {
       <style>{`@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}} @keyframes glow{0%,100%{box-shadow:0 0 30px rgba(167,139,250,0.2)}50%{box-shadow:0 0 60px rgba(219,39,119,0.3)}} ::-webkit-scrollbar{width:3px} ::-webkit-scrollbar-thumb{background:rgba(167,139,250,0.3);border-radius:2px} textarea{resize:none;font-family:inherit;outline:none}`}</style>
       <div style={{ width: "100%", maxWidth: 580, background: "rgba(255,255,255,0.03)", borderRadius: 28, border: "1px solid rgba(167,139,250,0.2)", boxShadow: "0 30px 80px rgba(0,0,0,0.7)", overflow: "hidden", animation: "glow 5s ease-in-out infinite" }}>
         <div style={{ padding: "18px 22px", background: "linear-gradient(135deg, rgba(109,40,217,0.15), rgba(219,39,119,0.1))", borderBottom: "1px solid rgba(167,139,250,0.15)", display: "flex", alignItems: "center", gap: 14 }}>
-          <div style={{ width: 48, height: 48, borderRadius: "50%", overflow: "hidden", flexShrink: 0, boxShadow: "0 0 20px rgba(124,58,237,0.5)" }}><img src="https://i.imgur.com/UUrViWA.jpeg" alt="NOVA" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top" }} /></div>
+          <div style={{ width: 48, height: 48, borderRadius: "50%", overflow: "hidden", flexShrink: 0, boxShadow: "0 0 20px rgba(124,58,237,0.5)" }}><img src="https://i.imgur.com/UUrViWA.jpeg" alt="EWA AI" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top" }} /></div>
           <div>
-            <div style={{ color: "#f8fafc", fontWeight: 700, fontSize: 17 }}>NOVA AI</div>
-            <div style={{ color: "#a78bfa", fontSize: 12, display: "flex", alignItems: "center", gap: 5 }}><div style={{ width: 6, height: 6, borderRadius: "50%", background: "#34d399" }} />Expert Marketing Digital</div>
+            <div style={{ color: "#f8fafc", fontWeight: 700, fontSize: 17 }}>EWA AI</div>
+            <div style={{ color: "#a78bfa", fontSize: 12, display: "flex", alignItems: "center", gap: 5 }}><div style={{ width: 6, height: 6, borderRadius: "50%", background: "#34d399" }} />EWA AI | Marketing Digital</div>
           </div>
         </div>
         <div style={{ height: 450, overflowY: "auto", padding: "16px 16px 8px" }}>
           {messages.map((m, i) => <Message key={i} msg={m} />)}
-          {loading && <div style={{ display: "flex", gap: 10, marginBottom: 14, alignItems: "flex-end" }}><div style={{ width: 34, height: 34, borderRadius: "50%", overflow: "hidden" }}><img src="https://i.imgur.com/UUrViWA.jpeg" alt="NOVA" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top" }} /></div><div style={{ background: "rgba(255,255,255,0.06)", borderRadius: "20px 20px 20px 4px", border: "1px solid rgba(167,139,250,0.2)" }}><TypingDots /></div></div>}
+          {loading && <div style={{ display: "flex", gap: 10, marginBottom: 14, alignItems: "flex-end" }}><div style={{ width: 34, height: 34, borderRadius: "50%", overflow: "hidden" }}><img src="https://i.imgur.com/UUrViWA.jpeg" alt="EWA AI" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top" }} /></div><div style={{ background: "rgba(255,255,255,0.06)", borderRadius: "20px 20px 20px 4px", border: "1px solid rgba(167,139,250,0.2)" }}><TypingDots /></div></div>}
           <div ref={bottomRef} />
         </div>
         <div style={{ padding: "10px 16px 18px", borderTop: "1px solid rgba(255,255,255,0.05)" }}>
