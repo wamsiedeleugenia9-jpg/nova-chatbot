@@ -22,6 +22,30 @@ TON SI STIL OBLIGATORIU:
 - Frazele sa fie scurte — maxim 15 cuvinte per fraza
 - Continutul sa sune ca o mama sau prietena care iti da un sfat sincer
 - Intotdeauna termina cu un CTA clar si simplu
+EXEMPLE CONCRETE DE HOOK-URI BUNE in romana (copiaza acest stil exact):
+- Stai! Poti construi un brand pe Instagram fara sa iti arati fata niciodata. Iata cum.
+- Am creat un avatar AI care posteaza si vinde in locul meu. Nu glumesc.
+- Daca iti e frica sa apari pe camera — aceasta schimba totul pentru tine.
+- Postezi zilnic si tot nu vinzi nimic. Nu e vina ta — nimeni nu ti-a aratat sistemul corect.
+- POV: Esti mama, copilul doarme, si in 2 ore ai generat prima vanzare de pe telefon.
+- Exista produse digitale pe care le cumperi o data si le vinzi de sute de ori. Putini stiu asta.
+
+EXEMPLE CONCRETE DE HOOK-URI RELE (evita complet acest stil):
+- O, da! Ai auzit de avatare automate dar ai intalnit probleme cu rezultatele?
+- Imbratiseaza libertatea interioara si cucereste universul digital!
+- Clubul celor intelepti te asteapta sa descoperi secretele succesului!
+- Saruta libertatea ta si lasa robotii sa lucreze pentru tine!
+
+IMPORTANT: Aplica tehnicile NLP in MOD INVIZIBIL — nu le mentiona, nu le lista, nu explica ce tehnici ai folosit. Clientul simte efectul, nu vede mecanismul. La fel cum un bucatar bun nu explica fiecare ingrediant — serveste doar preparatul.
+IMPORTANT: Chiar si cand aplici NLP, respecta regulile stricte — fara promisiuni de venit, fara cuvinte sensibile, fara cifre de castig garantat.
+EXEMPLE DE INLOCUIRE PENTRU NLP ETIC:
+- in loc de: cresti veniturile → construiesti un sistem care lucreaza pentru tine
+- in loc de: mai multi clienti → mai multa vizibilitate si impact
+- in loc de: afacere profitabila → afacere sustenabila si autentica
+- in loc de: castig garantat → rezultate reale daca aplici consistent
+- in loc de: succes financiar → libertate, flexibilitate, timp pentru tine si familie
+- in loc de: cresti vanzarile → atragi oamenii potriviti spre produsele tale
+
 INTERZIS in continut generat: bani, castig, profit, venit, euro, imbogatire, venit pasiv. Inlocuieste cu: rezultate, impact, valoare, succes, libertate, timp pentru familie. Produse: 1. Academia AI 127 euro - avatare AI, brand faceless, 80% comision afiliere. 2. Elite Digital Course 299 euro - 7 limbi, bonusuri MRR 700 euro. 3. Pachet Business Premium 70 euro - 30 ghiduri MRR. 4. Pachet Master Gold 105 euro - 40 ghiduri + 6000 video faceless. 5. Business Start All-in-One 130 euro - 35 ghiduri + 20000 video. 6. Deblocarea Vanzarilor 27 euro - pentru buget mic, 60% comision. 7. Mindful Messaging 68 USD - vanzari prin DM, 70% comision.`;
 
 function TypingDots() {
@@ -47,72 +71,13 @@ function Message({ msg }) {
   );
 }
 
-function AccessGate({ onAccess }) {
-  const [code, setCode] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  async function verify() {
-    if (!code.trim()) return;
-    setLoading(true);
-    setError("");
-    try {
-      const res = await fetch("/api/verify-token", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token: code.trim() })
-      });
-      if (res.ok) {
-        onAccess();
-      } else {
-        setError("Cod invalid. Verifica emailul de confirmare.");
-      }
-    } catch {
-      setError("Eroare de conexiune. Incearca din nou.");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  return (
-    <div style={{ minHeight: "100vh", background: "radial-gradient(ellipse at top left, #1e0a3c 0%, #0d0d1a 40%, #0a0a0f 100%)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16, fontFamily: "Georgia, serif" }}>
-      <div style={{ width: "100%", maxWidth: 420, background: "rgba(255,255,255,0.03)", borderRadius: 28, border: "1px solid rgba(167,139,250,0.2)", boxShadow: "0 30px 80px rgba(0,0,0,0.7)", padding: "40px 32px", textAlign: "center" }}>
-        <div style={{ width: 64, height: 64, borderRadius: "50%", overflow: "hidden", margin: "0 auto 20px", boxShadow: "0 0 20px rgba(124,58,237,0.5)" }}>
-          <img src="https://i.imgur.com/UUrViWA.jpeg" alt="EWA AI" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top" }} />
-        </div>
-        <div style={{ color: "#f8fafc", fontWeight: 700, fontSize: 22, marginBottom: 8 }}>EWA AI</div>
-        <div style={{ color: "#a78bfa", fontSize: 13, marginBottom: 32 }}>Introdu codul de acces primit prin email</div>
-        <input
-          type="text"
-          value={code}
-          onChange={e => setCode(e.target.value)}
-          onKeyDown={e => e.key === "Enter" && verify()}
-          placeholder="Codul tau unic..."
-          style={{ width: "100%", padding: "14px 18px", borderRadius: 14, border: "1px solid rgba(167,139,250,0.3)", background: "rgba(255,255,255,0.05)", color: "#f8fafc", fontSize: 15, marginBottom: 12, boxSizing: "border-box", outline: "none", fontFamily: "Georgia, serif" }}
-        />
-        {error && <div style={{ color: "#f87171", fontSize: 13, marginBottom: 12 }}>{error}</div>}
-        <button
-          onClick={verify}
-          disabled={loading || !code.trim()}
-          style={{ width: "100%", padding: "14px", borderRadius: 14, border: "none", background: code.trim() && !loading ? "linear-gradient(135deg, #6d28d9, #db2777)" : "rgba(255,255,255,0.08)", color: code.trim() && !loading ? "#fff" : "#475569", fontSize: 15, fontWeight: 600, cursor: code.trim() && !loading ? "pointer" : "not-allowed", fontFamily: "Georgia, serif" }}
-        >
-          {loading ? "Se verifica..." : "Acceseaza EWA AI"}
-        </button>
-      </div>
-    </div>
-  );
-}
-
 export default function App() {
-  const [accessed, setAccessed] = useState(false);
-  const [messages, setMessages] = useState([{ role: "assistant", content: "Salut! Sunt EWA AI - asistenta ta AI de marketing digital, creata de EWA.\n\nCu ce incepem azi?\n\nPot genera:\n- Hook-uri virale pentru Reels\n- Scenarii complete Reels\n- Structuri Carusele\n- CTA-uri de engagement si vanzare\n- Captions\n\nSpecifica nisa ta si tonul dorit pentru continut personalizat!" }]);
+  const [messages, setMessages] = useState([{ role: "assistant", content: "Salut! Sunt EWA AI - asistenta ta AI de marketing digital, creata de EWA.\n\nCu ce incepem azi?\n\nPot genera:\n- Hook-uri virale pentru Reels\n- Scenarii complete Reels\n- Structuri Carusele\n- CTA-uri de engagement si vanzare\n- Captions\n\nSpecifica nisa ta si tonul dorit pentru continut personalizat!\n\nDISCLAIMER: Continutul generat este doar pentru uz personal. Redistribuirea accesului este interzisa." }]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const bottomRef = useRef(null);
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, loading]);
-
-  if (!accessed) return <AccessGate onAccess={() => setAccessed(true)} />;
 
   async function send(text) {
     const msg = text || input.trim();
@@ -125,7 +90,7 @@ export default function App() {
       const res = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
         headers: { "Content-Type": "application/json", "x-api-key": process.env.NEXT_PUBLIC_ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true" },
-        body: JSON.stringify({ model: "claude-haiku-4-5-20251001", max_tokens: 1000, system: SYSTEM_PROMPT, messages: newMsgs.map(m => ({ role: m.role, content: m.content })) })
+        body: JSON.stringify({ model: "claude-sonnet-4-6", max_tokens: 1000, system: SYSTEM_PROMPT, messages: newMsgs.map(m => ({ role: m.role, content: m.content })) })
       });
       const data = await res.json();
       const reply = data.content?.[0]?.text || "Eroare. Incearca din nou.";
