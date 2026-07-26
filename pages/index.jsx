@@ -265,6 +265,17 @@ export default function App() {
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, loading]);
 
   useEffect(() => {
+    // Verificare directa in URL: linkul de resetare parola contine "type=recovery"
+    // fie in query, fie in hash. Nu ne bazam doar pe evenimentul onAuthStateChange,
+    // pentru ca acesta poate sosi cu intarziere sau poate fi raportat diferit
+    // in functie de fluxul de autentificare folosit.
+    if (typeof window !== "undefined") {
+      const url = window.location.href;
+      if (url.includes("type=recovery")) {
+        setRecovering(true);
+      }
+    }
+
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
     const { data: listener } = supabase.auth.onAuthStateChange((event, newSession) => {
       if (event === "PASSWORD_RECOVERY") setRecovering(true);
