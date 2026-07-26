@@ -28,9 +28,10 @@ function Message({ msg }) {
 }
 
 function AuthGate({ onAuthenticated }) {
-  const [mode, setMode] = useState("login"); // "login" | "signup" | "forgot"
+  const [mode, setMode] = useState("login"); // "login" | "signup" | "forgot" | "confirm"
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [otp, setOtp] = useState("");
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
   const [loading, setLoading] = useState(false);
@@ -64,6 +65,33 @@ function AuthGate({ onAuthenticated }) {
       return;
     }
 
+    if (mode === "confirm") {
+      if (!otp.trim()) return;
+      setLoading(true);
+      setError("");
+      setInfo("");
+      try {
+        const { data, error } = await supabase.auth.verifyOtp({
+          email: email.trim(),
+          token: otp.trim(),
+          type: "signup"
+        });
+        if (error) {
+          setError("Cod incorect sau expirat. Verifica emailul si incearca din nou.");
+        } else if (data.session) {
+          onAuthenticated();
+        } else {
+          setInfo("Cont confirmat! Te poti loga acum.");
+          switchMode("login");
+        }
+      } catch {
+        setError("Eroare de conexiune. Incearca din nou.");
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
     if (!email.trim() || !password.trim()) return;
     setLoading(true);
     setError("");
@@ -75,7 +103,12 @@ function AuthGate({ onAuthenticated }) {
           password
         });
         if (error) {
-          setError("Email sau parola incorecte.");
+          if (error.message && error.message.toLowerCase().includes("confirm")) {
+            setError("Contul nu este confirmat inca. Introdu codul primit prin email.");
+            switchMode("confirm");
+          } else {
+            setError("Email sau parola incorecte.");
+          }
         } else {
           onAuthenticated();
         }
@@ -89,9 +122,31 @@ function AuthGate({ onAuthenticated }) {
             ? "Acest email este deja inregistrat. Incearca sa te loghezi."
             : "Nu am putut crea contul. Incearca din nou.");
         } else {
-          setInfo("Bine ai venit! Verifica emailul pentru confirmare, apoi loghează-te.");
-          switchMode("login");
+          setInfo("Ti-am trimis un cod de confirmare pe email.");
+          switchMode("confirm");
         }
+      }
+    } catch {
+      setError("Eroare de conexiune. Incearca din nou.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function resendCode() {
+    if (!email.trim()) return;
+    setLoading(true);
+    setError("");
+    setInfo("");
+    try {
+      const { error } = await supabase.auth.resend({
+        type: "signup",
+        email: email.trim()
+      });
+      if (error) {
+        setError("Nu am putut retrimite codul. Incearca din nou in cateva minute.");
+      } else {
+        setInfo("Am retrimis codul pe email.");
       }
     } catch {
       setError("Eroare de conexiune. Incearca din nou.");
@@ -102,10 +157,12 @@ function AuthGate({ onAuthenticated }) {
 
   const heading = mode === "login" ? "Bine ai revenit"
     : mode === "signup" ? "Hai sa-ti construim contul"
+    : mode === "confirm" ? "Aproape gata"
     : "Resetam parola, fara griji";
 
   const subheading = mode === "login" ? "Continua acolo unde ai ramas"
     : mode === "signup" ? "Cateva secunde si esti inauntru"
+    : mode === "confirm" ? `Introdu codul trimis la ${email.trim() || "adresa ta de email"}`
     : "Iti trimitem un link pe email";
 
   return (
@@ -117,16 +174,18 @@ function AuthGate({ onAuthenticated }) {
         <div style={{ color: "#f8fafc", fontWeight: 700, fontSize: 21 }}>{heading}</div>
         <div style={{ color: "#a78bfa", fontSize: 13, marginBottom: 26, marginTop: 4 }}>{subheading}</div>
 
-        <input
-          type="email"
-          value={email}
-          onChange={e => setEmail(e.target.value)}
-          onKeyDown={e => e.key === "Enter" && mode === "forgot" && submit()}
-          placeholder="Emailul tau"
-          style={{ width: "100%", padding: "14px 18px", borderRadius: 14, border: "1px solid rgba(167,139,250,0.3)", background: "rgba(255,255,255,0.05)", color: "#f8fafc", fontSize: 15, marginBottom: 10, boxSizing: "border-box", outline: "none", fontFamily: "Georgia, serif" }}
-        />
+        {mode !== "confirm" && (
+          <input
+            type="email"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && mode === "forgot" && submit()}
+            placeholder="Emailul tau"
+            style={{ width: "100%", padding: "14px 18px", borderRadius: 14, border: "1px solid rgba(167,139,250,0.3)", background: "rgba(255,255,255,0.05)", color: "#f8fafc", fontSize: 15, marginBottom: 10, boxSizing: "border-box", outline: "none", fontFamily: "Georgia, serif" }}
+          />
+        )}
 
-        {mode !== "forgot" && (
+        {mode !== "forgot" && mode !== "confirm" && (
           <input
             type="password"
             value={password}
@@ -134,6 +193,18 @@ function AuthGate({ onAuthenticated }) {
             onKeyDown={e => e.key === "Enter" && submit()}
             placeholder="Parola ta"
             style={{ width: "100%", padding: "14px 18px", borderRadius: 14, border: "1px solid rgba(167,139,250,0.3)", background: "rgba(255,255,255,0.05)", color: "#f8fafc", fontSize: 15, marginBottom: 8, boxSizing: "border-box", outline: "none", fontFamily: "Georgia, serif" }}
+          />
+        )}
+
+        {mode === "confirm" && (
+          <input
+            type="text"
+            inputMode="numeric"
+            value={otp}
+            onChange={e => setOtp(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && submit()}
+            placeholder="Codul din email (6 cifre)"
+            style={{ width: "100%", padding: "14px 18px", borderRadius: 14, border: "1px solid rgba(167,139,250,0.3)", background: "rgba(255,255,255,0.05)", color: "#f8fafc", fontSize: 15, marginBottom: 10, boxSizing: "border-box", outline: "none", fontFamily: "Georgia, serif", textAlign: "center", letterSpacing: 4 }}
           />
         )}
 
@@ -151,11 +222,19 @@ function AuthGate({ onAuthenticated }) {
 
         <button
           onClick={submit}
-          disabled={loading || !email.trim() || (mode !== "forgot" && !password.trim())}
-          style={{ width: "100%", padding: "14px", borderRadius: 14, border: "none", background: (email.trim() && (mode === "forgot" || password.trim()) && !loading) ? "linear-gradient(135deg, #6d28d9, #db2777)" : "rgba(255,255,255,0.08)", color: (email.trim() && (mode === "forgot" || password.trim()) && !loading) ? "#fff" : "#475569", fontSize: 15, fontWeight: 600, cursor: (email.trim() && (mode === "forgot" || password.trim()) && !loading) ? "pointer" : "not-allowed", fontFamily: "Georgia, serif" }}
+          disabled={loading || (mode === "confirm" ? !otp.trim() : (!email.trim() || (mode !== "forgot" && !password.trim())))}
+          style={{ width: "100%", padding: "14px", borderRadius: 14, border: "none", background: (!loading && (mode === "confirm" ? otp.trim() : (email.trim() && (mode === "forgot" || password.trim())))) ? "linear-gradient(135deg, #6d28d9, #db2777)" : "rgba(255,255,255,0.08)", color: (!loading && (mode === "confirm" ? otp.trim() : (email.trim() && (mode === "forgot" || password.trim())))) ? "#fff" : "#475569", fontSize: 15, fontWeight: 600, cursor: (!loading && (mode === "confirm" ? otp.trim() : (email.trim() && (mode === "forgot" || password.trim())))) ? "pointer" : "not-allowed", fontFamily: "Georgia, serif" }}
         >
-          {loading ? "Se proceseaza..." : mode === "login" ? "Loghează-te" : mode === "signup" ? "Creeaza cont" : "Trimite link de resetare"}
+          {loading ? "Se proceseaza..." : mode === "login" ? "Loghează-te" : mode === "signup" ? "Creeaza cont" : mode === "confirm" ? "Confirma codul" : "Trimite link de resetare"}
         </button>
+
+        {mode === "confirm" && (
+          <div style={{ marginTop: 14 }}>
+            <span onClick={resendCode} style={{ color: "#a78bfa", fontSize: 12, cursor: "pointer", textDecoration: "underline" }}>
+              Nu ai primit codul? Retrimite
+            </span>
+          </div>
+        )}
 
         <div style={{ marginTop: 20, fontSize: 13, color: "#a78bfa" }}>
           {mode === "login" && (
@@ -166,6 +245,9 @@ function AuthGate({ onAuthenticated }) {
           )}
           {mode === "forgot" && (
             <>Ti-ai amintit parola? <span onClick={() => switchMode("login")} style={{ color: "#f8fafc", cursor: "pointer", textDecoration: "underline" }}>Inapoi la login</span></>
+          )}
+          {mode === "confirm" && (
+            <>Cod gresit sau alta adresa? <span onClick={() => switchMode("login")} style={{ color: "#f8fafc", cursor: "pointer", textDecoration: "underline" }}>Inapoi la login</span></>
           )}
         </div>
       </div>
