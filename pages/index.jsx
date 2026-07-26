@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { supabase } from "../lib/supabaseClient";
 
 // SYSTEM_PROMPT a fost mutat exclusiv server-side, in pages/api/chat.js.
 // Frontend-ul nu mai contine niciun prompt, nicio cheie API.
@@ -26,25 +27,176 @@ function Message({ msg }) {
   );
 }
 
-function AccessGate({ onAccess }) {
-  const [code, setCode] = useState("");
+function AuthGate({ onAuthenticated }) {
+  const [mode, setMode] = useState("login"); // "login" | "signup" | "forgot"
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [info, setInfo] = useState("");
   const [loading, setLoading] = useState(false);
 
-  async function verify() {
-    if (!code.trim()) return;
+  function switchMode(newMode) {
+    setMode(newMode);
+    setError("");
+    setInfo("");
+  }
+
+  async function submit() {
+    if (mode === "forgot") {
+      if (!email.trim()) return;
+      setLoading(true);
+      setError("");
+      setInfo("");
+      try {
+        const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+          redirectTo: typeof window !== "undefined" ? window.location.origin : undefined
+        });
+        if (error) {
+          setError("Nu am putut trimite emailul. Verifica adresa si incearca din nou.");
+        } else {
+          setInfo("Ti-am trimis un email cu un link de resetare a parolei.");
+        }
+      } catch {
+        setError("Eroare de conexiune. Incearca din nou.");
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
+    if (!email.trim() || !password.trim()) return;
+    setLoading(true);
+    setError("");
+    setInfo("");
+    try {
+      if (mode === "login") {
+        const { error } = await supabase.auth.signInWithPassword({
+          email: email.trim(),
+          password
+        });
+        if (error) {
+          setError("Email sau parola incorecte.");
+        } else {
+          onAuthenticated();
+        }
+      } else {
+        const { error } = await supabase.auth.signUp({
+          email: email.trim(),
+          password
+        });
+        if (error) {
+          setError(error.message === "User already registered"
+            ? "Acest email este deja inregistrat. Incearca sa te loghezi."
+            : "Nu am putut crea contul. Incearca din nou.");
+        } else {
+          setInfo("Bine ai venit! Verifica emailul pentru confirmare, apoi loghează-te.");
+          switchMode("login");
+        }
+      }
+    } catch {
+      setError("Eroare de conexiune. Incearca din nou.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const heading = mode === "login" ? "Bine ai revenit"
+    : mode === "signup" ? "Hai sa-ti construim contul"
+    : "Resetam parola, fara griji";
+
+  const subheading = mode === "login" ? "Continua acolo unde ai ramas"
+    : mode === "signup" ? "Cateva secunde si esti inauntru"
+    : "Iti trimitem un link pe email";
+
+  return (
+    <div style={{ minHeight: "100vh", background: "radial-gradient(ellipse at top left, #1e0a3c 0%, #0d0d1a 40%, #0a0a0f 100%)", display: "flex", alignItems: "center", justifyContent: "center", padding: "20px 16px", fontFamily: "Georgia, serif" }}>
+      <div style={{ width: "100%", maxWidth: 400, background: "rgba(255,255,255,0.03)", borderRadius: 28, border: "1px solid rgba(167,139,250,0.2)", boxShadow: "0 30px 80px rgba(0,0,0,0.7)", padding: "clamp(28px, 7vw, 40px) clamp(22px, 6vw, 32px)", textAlign: "center", boxSizing: "border-box" }}>
+        <div style={{ width: 60, height: 60, borderRadius: "50%", overflow: "hidden", margin: "0 auto 18px", boxShadow: "0 0 20px rgba(124,58,237,0.5)" }}>
+          <img src="https://i.imgur.com/UUrViWA.jpeg" alt="EWA AI" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top" }} />
+        </div>
+        <div style={{ color: "#f8fafc", fontWeight: 700, fontSize: 21 }}>{heading}</div>
+        <div style={{ color: "#a78bfa", fontSize: 13, marginBottom: 26, marginTop: 4 }}>{subheading}</div>
+
+        <input
+          type="email"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+          onKeyDown={e => e.key === "Enter" && mode === "forgot" && submit()}
+          placeholder="Emailul tau"
+          style={{ width: "100%", padding: "14px 18px", borderRadius: 14, border: "1px solid rgba(167,139,250,0.3)", background: "rgba(255,255,255,0.05)", color: "#f8fafc", fontSize: 15, marginBottom: 10, boxSizing: "border-box", outline: "none", fontFamily: "Georgia, serif" }}
+        />
+
+        {mode !== "forgot" && (
+          <input
+            type="password"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && submit()}
+            placeholder="Parola ta"
+            style={{ width: "100%", padding: "14px 18px", borderRadius: 14, border: "1px solid rgba(167,139,250,0.3)", background: "rgba(255,255,255,0.05)", color: "#f8fafc", fontSize: 15, marginBottom: 8, boxSizing: "border-box", outline: "none", fontFamily: "Georgia, serif" }}
+          />
+        )}
+
+        {mode === "login" && (
+          <div style={{ textAlign: "right", marginBottom: 14 }}>
+            <span onClick={() => switchMode("forgot")} style={{ color: "#a78bfa", fontSize: 12, cursor: "pointer", textDecoration: "underline" }}>
+              Ai uitat parola?
+            </span>
+          </div>
+        )}
+        {mode !== "login" && <div style={{ marginBottom: 6 }} />}
+
+        {error && <div style={{ color: "#f87171", fontSize: 13, marginBottom: 12 }}>{error}</div>}
+        {info && <div style={{ color: "#34d399", fontSize: 13, marginBottom: 12 }}>{info}</div>}
+
+        <button
+          onClick={submit}
+          disabled={loading || !email.trim() || (mode !== "forgot" && !password.trim())}
+          style={{ width: "100%", padding: "14px", borderRadius: 14, border: "none", background: (email.trim() && (mode === "forgot" || password.trim()) && !loading) ? "linear-gradient(135deg, #6d28d9, #db2777)" : "rgba(255,255,255,0.08)", color: (email.trim() && (mode === "forgot" || password.trim()) && !loading) ? "#fff" : "#475569", fontSize: 15, fontWeight: 600, cursor: (email.trim() && (mode === "forgot" || password.trim()) && !loading) ? "pointer" : "not-allowed", fontFamily: "Georgia, serif" }}
+        >
+          {loading ? "Se proceseaza..." : mode === "login" ? "Loghează-te" : mode === "signup" ? "Creeaza cont" : "Trimite link de resetare"}
+        </button>
+
+        <div style={{ marginTop: 20, fontSize: 13, color: "#a78bfa" }}>
+          {mode === "login" && (
+            <>Nu ai cont inca? <span onClick={() => switchMode("signup")} style={{ color: "#f8fafc", cursor: "pointer", textDecoration: "underline" }}>Creeaza unul</span></>
+          )}
+          {mode === "signup" && (
+            <>Ai deja cont? <span onClick={() => switchMode("login")} style={{ color: "#f8fafc", cursor: "pointer", textDecoration: "underline" }}>Loghează-te</span></>
+          )}
+          {mode === "forgot" && (
+            <>Ti-ai amintit parola? <span onClick={() => switchMode("login")} style={{ color: "#f8fafc", cursor: "pointer", textDecoration: "underline" }}>Inapoi la login</span></>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ResetPasswordForm({ onDone }) {
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [error, setError] = useState("");
+  const [done, setDone] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  async function submit() {
+    if (!password.trim() || password.length < 6) {
+      setError("Parola trebuie sa aiba cel putin 6 caractere.");
+      return;
+    }
+    if (password !== confirm) {
+      setError("Parolele nu coincid.");
+      return;
+    }
     setLoading(true);
     setError("");
     try {
-      const res = await fetch("/api/verify-token", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token: code.trim() })
-      });
-      if (res.ok) {
-        onAccess();
+      const { error } = await supabase.auth.updateUser({ password });
+      if (error) {
+        setError("Nu am putut actualiza parola. Incearca din nou.");
       } else {
-        setError("Cod invalid. Verifica emailul de confirmare.");
+        setDone(true);
       }
     } catch {
       setError("Eroare de conexiune. Incearca din nou.");
@@ -54,36 +206,57 @@ function AccessGate({ onAccess }) {
   }
 
   return (
-    <div style={{ minHeight: "100vh", background: "radial-gradient(ellipse at top left, #1e0a3c 0%, #0d0d1a 40%, #0a0a0f 100%)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16, fontFamily: "Georgia, serif" }}>
-      <div style={{ width: "100%", maxWidth: 420, background: "rgba(255,255,255,0.03)", borderRadius: 28, border: "1px solid rgba(167,139,250,0.2)", boxShadow: "0 30px 80px rgba(0,0,0,0.7)", padding: "40px 32px", textAlign: "center" }}>
-        <div style={{ width: 64, height: 64, borderRadius: "50%", overflow: "hidden", margin: "0 auto 20px", boxShadow: "0 0 20px rgba(124,58,237,0.5)" }}>
-          <img src="https://i.imgur.com/UUrViWA.jpeg" alt="EWA AI" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top" }} />
-        </div>
-        <div style={{ color: "#f8fafc", fontWeight: 700, fontSize: 22, marginBottom: 8 }}>EWA AI</div>
-        <div style={{ color: "#a78bfa", fontSize: 13, marginBottom: 32 }}>Introdu codul de acces primit prin email</div>
-        <input
-          type="text"
-          value={code}
-          onChange={e => setCode(e.target.value)}
-          onKeyDown={e => e.key === "Enter" && verify()}
-          placeholder="Codul tau unic..."
-          style={{ width: "100%", padding: "14px 18px", borderRadius: 14, border: "1px solid rgba(167,139,250,0.3)", background: "rgba(255,255,255,0.05)", color: "#f8fafc", fontSize: 15, marginBottom: 12, boxSizing: "border-box", outline: "none", fontFamily: "Georgia, serif" }}
-        />
-        {error && <div style={{ color: "#f87171", fontSize: 13, marginBottom: 12 }}>{error}</div>}
-        <button
-          onClick={verify}
-          disabled={loading || !code.trim()}
-          style={{ width: "100%", padding: "14px", borderRadius: 14, border: "none", background: code.trim() && !loading ? "linear-gradient(135deg, #6d28d9, #db2777)" : "rgba(255,255,255,0.08)", color: code.trim() && !loading ? "#fff" : "#475569", fontSize: 15, fontWeight: 600, cursor: code.trim() && !loading ? "pointer" : "not-allowed", fontFamily: "Georgia, serif" }}
-        >
-          {loading ? "Se verifica..." : "Acceseaza EWA AI"}
-        </button>
+    <div style={{ minHeight: "100vh", background: "radial-gradient(ellipse at top left, #1e0a3c 0%, #0d0d1a 40%, #0a0a0f 100%)", display: "flex", alignItems: "center", justifyContent: "center", padding: "20px 16px", fontFamily: "Georgia, serif" }}>
+      <div style={{ width: "100%", maxWidth: 400, background: "rgba(255,255,255,0.03)", borderRadius: 28, border: "1px solid rgba(167,139,250,0.2)", boxShadow: "0 30px 80px rgba(0,0,0,0.7)", padding: "clamp(28px, 7vw, 40px) clamp(22px, 6vw, 32px)", textAlign: "center", boxSizing: "border-box" }}>
+        <div style={{ color: "#f8fafc", fontWeight: 700, fontSize: 21, marginBottom: 4 }}>Alege o parola noua</div>
+        {done ? (
+          <div>
+            <div style={{ color: "#34d399", fontSize: 14, marginTop: 16, marginBottom: 20 }}>
+              Parola a fost schimbata. Poti continua in EWA AI.
+            </div>
+            <button
+              onClick={onDone}
+              style={{ width: "100%", padding: "14px", borderRadius: 14, border: "none", background: "linear-gradient(135deg, #6d28d9, #db2777)", color: "#fff", fontSize: 15, fontWeight: 600, cursor: "pointer", fontFamily: "Georgia, serif" }}
+            >
+              Continua
+            </button>
+          </div>
+        ) : (
+          <>
+            <div style={{ color: "#a78bfa", fontSize: 13, marginBottom: 24 }}>Ultimul pas inainte sa continui</div>
+            <input
+              type="password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              placeholder="Parola noua"
+              style={{ width: "100%", padding: "14px 18px", borderRadius: 14, border: "1px solid rgba(167,139,250,0.3)", background: "rgba(255,255,255,0.05)", color: "#f8fafc", fontSize: 15, marginBottom: 10, boxSizing: "border-box", outline: "none", fontFamily: "Georgia, serif" }}
+            />
+            <input
+              type="password"
+              value={confirm}
+              onChange={e => setConfirm(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && submit()}
+              placeholder="Confirma parola noua"
+              style={{ width: "100%", padding: "14px 18px", borderRadius: 14, border: "1px solid rgba(167,139,250,0.3)", background: "rgba(255,255,255,0.05)", color: "#f8fafc", fontSize: 15, marginBottom: 12, boxSizing: "border-box", outline: "none", fontFamily: "Georgia, serif" }}
+            />
+            {error && <div style={{ color: "#f87171", fontSize: 13, marginBottom: 12 }}>{error}</div>}
+            <button
+              onClick={submit}
+              disabled={loading}
+              style={{ width: "100%", padding: "14px", borderRadius: 14, border: "none", background: !loading ? "linear-gradient(135deg, #6d28d9, #db2777)" : "rgba(255,255,255,0.08)", color: !loading ? "#fff" : "#475569", fontSize: 15, fontWeight: 600, cursor: !loading ? "pointer" : "not-allowed", fontFamily: "Georgia, serif" }}
+            >
+              {loading ? "Se salveaza..." : "Salveaza parola noua"}
+            </button>
+          </>
+        )}
       </div>
     </div>
   );
 }
 
 export default function App() {
-  const [accessed, setAccessed] = useState(false);
+  const [session, setSession] = useState(undefined); // undefined = se verifica, null = neautentificat
+  const [recovering, setRecovering] = useState(false);
   const [messages, setMessages] = useState([{ role: "assistant", content: "Salut! Sunt EWA AI - asistenta ta AI de marketing digital, creata de EWA.\n\nCu ce incepem azi?\n\nPot genera:\n- Hook-uri virale pentru Reels\n- Scenarii complete Reels\n- Structuri Carusele\n- CTA-uri de engagement si vanzare\n- Captions\n\nSpecifica nisa ta si tonul dorit pentru continut personalizat!" }]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -91,7 +264,43 @@ export default function App() {
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, loading]);
 
-  if (!accessed) return <AccessGate onAccess={() => setAccessed(true)} />;
+  useEffect(() => {
+    // Verificare directa in URL: linkul de resetare parola contine "type=recovery"
+    // fie in query, fie in hash. Nu ne bazam doar pe evenimentul onAuthStateChange,
+    // pentru ca acesta poate sosi cu intarziere sau poate fi raportat diferit
+    // in functie de fluxul de autentificare folosit.
+    if (typeof window !== "undefined") {
+      const url = window.location.href;
+      if (url.includes("type=recovery")) {
+        setRecovering(true);
+      }
+    }
+
+    supabase.auth.getSession().then(({ data }) => setSession(data.session));
+    const { data: listener } = supabase.auth.onAuthStateChange((event, newSession) => {
+      if (event === "PASSWORD_RECOVERY") setRecovering(true);
+      setSession(newSession);
+    });
+    return () => listener.subscription.unsubscribe();
+  }, []);
+
+  async function signOut() {
+    await supabase.auth.signOut();
+  }
+
+  if (session === undefined) {
+    return (
+      <div style={{ minHeight: "100vh", background: "radial-gradient(ellipse at top left, #1e0a3c 0%, #0d0d1a 40%, #0a0a0f 100%)", display: "flex", alignItems: "center", justifyContent: "center", color: "#a78bfa", fontFamily: "Georgia, serif" }}>
+        Se incarca...
+      </div>
+    );
+  }
+
+  if (recovering) {
+    return <ResetPasswordForm onDone={() => setRecovering(false)} />;
+  }
+
+  if (!session) return <AuthGate onAuthenticated={() => {}} />;
 
   async function send(text) {
     const msg = text || input.trim();
@@ -123,10 +332,13 @@ export default function App() {
       <div style={{ width: "100%", maxWidth: 580, background: "rgba(255,255,255,0.03)", borderRadius: 28, border: "1px solid rgba(167,139,250,0.2)", boxShadow: "0 30px 80px rgba(0,0,0,0.7)", overflow: "hidden", animation: "glow 5s ease-in-out infinite" }}>
         <div style={{ padding: "18px 22px", background: "linear-gradient(135deg, rgba(109,40,217,0.15), rgba(219,39,119,0.1))", borderBottom: "1px solid rgba(167,139,250,0.15)", display: "flex", alignItems: "center", gap: 14 }}>
           <div style={{ width: 48, height: 48, borderRadius: "50%", overflow: "hidden", flexShrink: 0, boxShadow: "0 0 20px rgba(124,58,237,0.5)" }}><img src="https://i.imgur.com/UUrViWA.jpeg" alt="EWA AI" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top" }} /></div>
-          <div>
+          <div style={{ flex: 1 }}>
             <div style={{ color: "#f8fafc", fontWeight: 700, fontSize: 17 }}>EWA AI</div>
             <div style={{ color: "#a78bfa", fontSize: 12, display: "flex", alignItems: "center", gap: 5 }}><div style={{ width: 6, height: 6, borderRadius: "50%", background: "#34d399" }} />EWA AI | Marketing Digital</div>
           </div>
+          <button onClick={signOut} style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(167,139,250,0.2)", borderRadius: 12, padding: "6px 12px", color: "#a78bfa", fontSize: 12, cursor: "pointer", fontFamily: "Georgia, serif" }}>
+            Delogare
+          </button>
         </div>
         <div style={{ height: 450, overflowY: "auto", padding: "16px 16px 8px" }}>
           {messages.map((m, i) => <Message key={i} msg={m} />)}
