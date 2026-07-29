@@ -2,6 +2,8 @@
 // Ruta server-side care inlocuieste apelul direct din browser catre Anthropic.
 // Cheia API nu mai ajunge niciodata in bundle-ul trimis clientului.
 
+import { getSupabaseServer } from "../../lib/supabaseServer";
+
 const SYSTEM_PROMPT = `Esti EWA AI - asistenta AI de marketing digital pentru antreprenori din Romania. Raspunzi MEREU in romana. Esti directa, energica, calda. Cand cineva cere continut intrebi INTAI tonul preferat (Profesional / Prietenos / Empatic / Motivational / Amuzant), apoi generezi. TEHNICI NLP SI PSIHOLOGIA CONSUMATORULUI (aplica in tot continutul generat):
 1. RECIPROCITATE - Ofera valoare gratuita inainte de CTA. Ex: ghid gratuit, tip util → apoi CTA.
 2. DOVADA SOCIALA - Mentioneaza rezultate reale. Ex: 300+ femei au aplicat aceasta metoda.
@@ -50,6 +52,25 @@ const MAX_MESSAGE_LENGTH = 4000;  // caractere per mesaj
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Metoda nu este permisa." });
+  }
+
+  const authorization = req.headers.authorization;
+  const match = typeof authorization === "string"
+    ? authorization.match(/^Bearer\s+(\S+)$/i)
+    : null;
+
+  if (!match) {
+    return res.status(401).json({ error: "Autentificare necesara." });
+  }
+
+  try {
+    const { data, error } = await getSupabaseServer().auth.getUser(match[1]);
+    if (error || !data.user) {
+      return res.status(401).json({ error: "Sesiune invalida sau expirata." });
+    }
+  } catch (error) {
+    console.error("Eroare la verificarea autentificarii Supabase:", error);
+    return res.status(500).json({ error: "Eroare de configurare server. Incearca mai tarziu." });
   }
 
   const ip =

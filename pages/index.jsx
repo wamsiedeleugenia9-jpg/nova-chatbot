@@ -392,9 +392,21 @@ export default function App() {
     setInput("");
     setLoading(true);
     try {
+      // Read the current session immediately before the request so a refreshed
+      // Supabase access token is used instead of trusting any user id from UI state.
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      const accessToken = sessionData.session?.access_token;
+      if (sessionError || !accessToken) {
+        setMessages(prev => [...prev, { role: "assistant", content: "Sesiunea a expirat. Logheaza-te din nou." }]);
+        return;
+      }
+
       const res = await fetch("/api/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${accessToken}`
+        },
         body: JSON.stringify({ messages: newMsgs.map(m => ({ role: m.role, content: m.content })) })
       });
       const data = await res.json();
