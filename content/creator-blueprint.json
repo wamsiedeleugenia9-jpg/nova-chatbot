@@ -1,0 +1,17 @@
+{
+  "contentStatus": "temporary-placeholder-awaiting-approved-ewa-mvp-document",
+  "id": "creator-blueprint",
+  "title": "Creator Blueprint",
+  "introduction": "[TEXT TEMPORAR — înlocuiește cu deschiderea oficială Creator Blueprint din EWA MVP Document Complet]",
+  "atelier": {
+    "id": "atelier-1",
+    "number": 1,
+    "title": "[TITLU TEMPORAR — înlocuiește cu titlul oficial Atelierul 1 — Tu]",
+    "introduction": "[TEXT TEMPORAR — înlocuiește cu deschiderea oficială Atelierul 1 — Tu]",
+    "question": {
+      "id": "atelier-1-question-1",
+      "number": 1,
+      "text": "[TEXT TEMPORAR — înlocuiește cu formularea completă oficială a Întrebării 1, care începe cu «Ce te-a adus aici acum? Nu răspunde ca pentru un formular...»]"
+    }
+  }
+}

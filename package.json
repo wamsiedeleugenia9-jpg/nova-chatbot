@@ -3,7 +3,9 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "test": "node --test tests/*.test.js",
+    "lint": "node scripts/lint.js"
   },
   "dependencies": {
     "next": "latest",
