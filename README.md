@@ -14,6 +14,16 @@ Asistenta AI de marketing digital pentru antreprenori din Romania. Construita cu
 |---|---|
 | `ANTHROPIC_API_KEY` | cheia Anthropic, folosita doar server-side. **Niciodata cu prefix `NEXT_PUBLIC_`.** |
 | `ACCESS_TOKENS` | lista de coduri de acces valide, separate prin virgula (mecanism temporar de testare interna) |
+| `NEXT_PUBLIC_SUPABASE_URL` | URL-ul proiectului Supabase, folosit de client si API |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | cheia anon Supabase; accesul la date este protejat prin RLS |
+
+## Creator Blueprint (vertical slice 1)
+
+Ruta protejata `/blueprint` foloseste tabelele aprobate `creator_blueprints`,
+`blueprint_sections` si `blueprint_answers`. Aplicati migratia
+`supabase/migrations/20260730000000_extend_blueprint_answers_vertical_slice.sql` inainte de
+utilizare. Continutul temporar este izolat in `content/creator-blueprint.json` si trebuie
+inlocuit cu formularea exacta din documentul EWA MVP inainte de aprobarea pentru productie.
 
 ## Structura
 pages/
