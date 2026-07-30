@@ -37,6 +37,8 @@ test("package.json is valid and defines each script once", () => {
 });
 
 test("saved approved-table records restore Blueprint state", () => {
+  assert.deepEqual(BLUEPRINT_STATUS, { NOT_STARTED: "inceput", IN_PROGRESS: "in_desfasurare", COMPLETED: "confirmat" });
+  assert.deepEqual(SECTION_STATUS, { NOT_STARTED: "inceput", IN_PROGRESS: "in_desfasurare", COMPLETED: "confirmat" });
   const state = blueprintState(
     { status: BLUEPRINT_STATUS.IN_PROGRESS },
     { status: SECTION_STATUS.COMPLETED, confirmed_at: "2026-07-30T00:00:00Z" },
