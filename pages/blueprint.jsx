@@ -13,6 +13,7 @@ export default function Blueprint() {
   const [adjustment, setAdjustment] = useState("");
   const [showAdjustment, setShowAdjustment] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -24,8 +25,16 @@ export default function Blueprint() {
 
   useEffect(() => {
     if (!session) return;
-    request(session, "GET").then(update).catch(showError);
+    load(session);
   }, [session]);
+
+  async function load(currentSession) {
+    setLoading(true);
+    setError("");
+    try { update(await request(currentSession, "GET")); }
+    catch (err) { showError(err); }
+    finally { setLoading(false); }
+  }
 
   function update(data) {
     setContent(data.content);
@@ -56,12 +65,21 @@ export default function Blueprint() {
     finally { setBusy(false); }
   }
 
-  if (session === undefined || (session && !content)) return <main style={shell}><div style={card}>Se încarcă…</div></main>;
+  if (session === undefined || (session && loading)) return <main style={shell}><div style={card}>Se încarcă…</div></main>;
   if (!session) return (
     <main style={shell}><div style={{ ...card, textAlign: "center" }}>
       <h1>Creator Blueprint</h1>
       <p style={{ color: "#c4b5fd", lineHeight: 1.7 }}>Autentifică-te pentru a începe sau a continua Blueprint-ul.</p>
       <a href="/" style={{ ...button, display: "inline-block", textDecoration: "none" }}>Mergi la autentificare</a>
+    </div></main>
+  );
+  if (!content) return (
+    <main style={shell}><div style={{ ...card, textAlign: "center" }}>
+      <h1>Creator Blueprint</h1>
+      <p role="alert" style={{ color: "#fca5a5", lineHeight: 1.7 }}>{error}</p>
+      <button onClick={() => load(session)} style={button}>Încearcă din nou</button>
+      <br />
+      <a href="/" style={{ display: "inline-block", color: "#a78bfa", marginTop: 28 }}>← Înapoi la EWA AI</a>
     </div></main>
   );
 
