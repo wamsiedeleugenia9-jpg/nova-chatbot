@@ -30,9 +30,17 @@ existing objects:
 
 The previous parallel `creator_blueprint_responses` table remains removed. The slice extends
 `blueprint_answers` only with the values required to store interpretation and adjustment
-separately and with an update timestamp. The application relies on the approved existing
-unique constraints for one blueprint per user, one section per user/atelier, and one answer
-per user/atelier/question; it does not create redundant indexes with guessed names.
+separately and with an update timestamp.
+
+No baseline production migration is present in the repository, so the three uniqueness
+requirements cannot be verified from version-controlled history. The vertical-slice migration
+queries PostgreSQL's catalogs at migration time. It creates a unique index only when no
+equivalent valid, non-partial unique index or UNIQUE-constraint index already covers the exact
+key, preventing redundant indexes while guaranteeing safe upserts:
+
+- `creator_blueprints (user_id)`
+- `blueprint_sections (user_id, atelier_number)`
+- `blueprint_answers (user_id, atelier_number, question_number)`
 
 ## Evidence and required resolution
 

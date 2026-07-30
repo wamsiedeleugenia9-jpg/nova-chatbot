@@ -59,3 +59,13 @@ test("migration extends approved answers table without creating a parallel table
   assert.doesNotMatch(migration, /creator_blueprint_responses/);
   assert.doesNotMatch(migration, /create table/i);
 });
+
+test("migration enforces upsert uniqueness only when no equivalent unique index exists", () => {
+  const migration = readFileSync(join(__dirname, "..", "supabase", "migrations", "20260730000000_extend_blueprint_answers_vertical_slice.sql"), "utf8");
+  assert.equal((migration.match(/if not exists \(/g) || []).length, 3);
+  assert.equal((migration.match(/i\.indisunique/g) || []).length, 3);
+  assert.equal((migration.match(/i\.indpred is null/g) || []).length, 3);
+  assert.match(migration, /creator_blueprints \(user_id\)/);
+  assert.match(migration, /blueprint_sections \(user_id, atelier_number\)/);
+  assert.match(migration, /blueprint_answers \(user_id, atelier_number, question_number\)/);
+});
