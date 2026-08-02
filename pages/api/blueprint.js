@@ -80,6 +80,10 @@ export default async function handler(req, res) {
       const questionNumber = Number(req.body?.questionNumber);
       if (!answer || answer.length > MAX_ANSWER_LENGTH) return res.status(400).json({ error: `Răspunsul trebuie să aibă între 1 și ${MAX_ANSWER_LENGTH} de caractere.` });
       if (!Number.isInteger(questionNumber) || questionNumber < 1 || questionNumber > atelier.questions.length) return res.status(400).json({ error: "Întrebare invalidă." });
+      const answeredQuestions = new Set(atelierAnswers.filter(item => item.raw_answer).map(item => item.question_number));
+      let expectedQuestion = 1;
+      while (answeredQuestions.has(expectedQuestion)) expectedQuestion += 1;
+      if (questionNumber !== expectedQuestion) return res.status(409).json({ error: "Răspunde la întrebarea curentă înainte să continui." });
       const interpretation = await askClaude(answerInterpretationPrompt({ question: atelier.questions[questionNumber - 1], answer }));
       const saved = await client.from("blueprint_answers").upsert({ user_id: user.id, atelier_number: atelierNumber, question_number: questionNumber, raw_answer: answer, interpreted_answer: interpretation, adjustment_request: null, updated_at: new Date().toISOString() }, { onConflict: "user_id,atelier_number,question_number" });
       if (saved.error) throw saved.error;
@@ -97,6 +101,11 @@ export default async function handler(req, res) {
       const answers = atelierAnswers.map(item => ({ questionNumber: item.question_number, rawAnswer: item.raw_answer }));
       const summary = await askClaude(sectionSummaryPrompt({ atelier, answers, currentSummary: section.interpreted_summary, adjustment }), true);
       await updateSection(client, user.id, atelierNumber, { interpreted_summary: summary.summary, key_elements: summary.keyElements, status: SECTION_STATUS.REVIEW, confirmed_at: null });
+    } else if (action === "summarize") {
+      if (atelierAnswers.filter(item => item.raw_answer).length !== atelier.questions.length) return res.status(409).json({ error: "Finalizează toate întrebările înainte de rezumat." });
+      const answers = atelierAnswers.map(item => ({ questionNumber: item.question_number, rawAnswer: item.raw_answer }));
+      const summary = await askClaude(sectionSummaryPrompt({ atelier, answers }), true);
+      await updateSection(client, user.id, atelierNumber, { interpreted_summary: summary.summary, key_elements: summary.keyElements, status: SECTION_STATUS.IN_PROGRESS, confirmed_at: null });
     } else if (action === "confirm") {
       if (!section?.interpreted_summary) return res.status(409).json({ error: "Nu există un rezumat de confirmat." });
       const confirmedAt = new Date().toISOString();
@@ -105,7 +114,11 @@ export default async function handler(req, res) {
       if (section?.status !== SECTION_STATUS.COMPLETED || atelierNumber >= 7) return res.status(409).json({ error: "Atelierul curent trebuie confirmat mai întâi." });
       await updateBlueprint(client, user.id, { current_atelier: atelierNumber + 1, status: BLUEPRINT_STATUS.IN_PROGRESS });
       await updateSection(client, user.id, atelierNumber + 1, { status: SECTION_STATUS.IN_PROGRESS, confirmed_at: null });
-    } else if (action !== "pause") return res.status(400).json({ error: "Acțiune necunoscută." });
+    } else if (action === "pause") {
+      // Schema aprobată nu are un câmp dedicat pauzei. Persistăm checkpoint-ul
+      // numai prin atelierul curent, status, răspunsuri și secțiunea salvată.
+      await updateBlueprint(client, user.id, { current_atelier: atelierNumber, status: BLUEPRINT_STATUS.IN_PROGRESS });
+    } else return res.status(400).json({ error: "Acțiune necunoscută." });
 
     records = await load(client, user.id);
     return res.status(200).json({ content: CONTENT, state: blueprintState(records.blueprint, records.sections, records.answers), paused: action === "pause" });

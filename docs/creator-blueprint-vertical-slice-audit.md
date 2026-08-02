@@ -19,6 +19,16 @@ Această etapă acoperă exact atelierele 1–7:
   confirmarea celui curent;
 - revenirea reface atelierul, întrebarea, răspunsurile și rezumatul din Supabase.
 
+## Verificarea pauzei și a schemei aprobate
+
+Schema de producție confirmată pentru `creator_blueprints` conține `id`, `user_id`,
+`current_atelier`, `status`, `completed_at` și timestamp-uri; nu conține `paused_at`. Prin urmare,
+implementarea nu citește și nu scrie un asemenea câmp și nu adaugă o migrare neaprobată.
+Acțiunea de pauză persistă cel mai mic checkpoint susținut de schema existentă: păstrează
+`current_atelier` și statusul `in_desfasurare`, în timp ce răspunsurile și secțiunea sunt deja
+salvate. Revenirea se reconstruiește din aceste date. Limita este că MVP-ul nu poate păstra un
+timestamp sau un indicator distinct pentru momentul pauzei fără o schimbare de schemă aprobată.
+
 ## Limita etapei
 
 Atelierul 8 și documentul Creator DNA aparțin Etapei 4 în ordinea oficială și nu sunt implementate

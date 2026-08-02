@@ -36,7 +36,7 @@ test("package.json is valid and defines each script once", () => {
 
 test("saved approved-table records restore Blueprint state", () => {
   assert.deepEqual(BLUEPRINT_STATUS, { NOT_STARTED: "inceput", IN_PROGRESS: "in_desfasurare", COMPLETED: "confirmat" });
-  assert.deepEqual(SECTION_STATUS, { NOT_STARTED: "inceput", IN_PROGRESS: "in_desfasurare", COMPLETED: "confirmat", REVIEW: "de_revazut" });
+  assert.deepEqual(SECTION_STATUS, { NOT_STARTED: "inceput", IN_PROGRESS: "in_desfasurare", COMPLETED: "confirmat", REVIEW: "de_revizuit" });
   const state = blueprintState(
     { status: BLUEPRINT_STATUS.IN_PROGRESS, current_atelier: 1 },
     [{ atelier_number: 1, status: SECTION_STATUS.COMPLETED, confirmed_at: "2026-07-30T00:00:00Z", interpreted_summary: "Summary", key_elements: ["Key"] }],
@@ -46,6 +46,27 @@ test("saved approved-table records restore Blueprint state", () => {
   assert.equal(state.summary, "Summary");
   assert.equal(state.completed, true);
   assert.equal(state.answers[0].rawAnswer, "Raw");
+  assert.equal("paused" in state, false);
+});
+
+test("progress restoration uses the first unanswered question without skipping gaps", () => {
+  const state = blueprintState(
+    { status: BLUEPRINT_STATUS.IN_PROGRESS, current_atelier: 2 },
+    [{ atelier_number: 2, status: SECTION_STATUS.IN_PROGRESS }],
+    [
+      { atelier_number: 2, question_number: 1, raw_answer: "Unu" },
+      { atelier_number: 2, question_number: 3, raw_answer: "Trei" }
+    ]
+  );
+  assert.equal(state.currentQuestion, 2);
+});
+
+test("runtime does not depend on an unapproved paused_at column", () => {
+  const stateSource = readFileSync(join(__dirname, "..", "lib", "blueprint", "state.js"), "utf8");
+  const apiSource = readFileSync(join(__dirname, "..", "pages", "api", "blueprint.js"), "utf8");
+  assert.doesNotMatch(stateSource, /paused_at/);
+  assert.doesNotMatch(apiSource, /paused_at/);
+  assert.match(apiSource, /current_atelier: atelierNumber/);
 });
 
 test("canonical content contains the official seven Phase 3 ateliers", () => {
