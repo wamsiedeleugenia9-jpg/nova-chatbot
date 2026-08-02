@@ -86,6 +86,22 @@ test("migration extends approved answers table without creating a parallel table
   assert.doesNotMatch(migration, /create table/i);
 });
 
+test("phase 3 migration adds every blueprint_sections field used by the initial load", () => {
+  const api = readFileSync(join(__dirname, "..", "pages", "api", "blueprint.js"), "utf8");
+  const migration = readFileSync(join(__dirname, "..", "supabase", "migrations", "20260802000000_extend_blueprint_sections_phase_3.sql"), "utf8");
+  assert.match(api, /select\("atelier_number,interpreted_summary,key_elements,status,confirmed_at"\)/);
+  assert.match(migration, /alter table public\.blueprint_sections/);
+  assert.match(migration, /add column if not exists interpreted_summary text/);
+  assert.match(migration, /add column if not exists key_elements jsonb/);
+});
+
+test("initial Blueprint load failures are not reported as save failures", () => {
+  const api = readFileSync(join(__dirname, "..", "pages", "api", "blueprint.js"), "utf8");
+  assert.match(api, /method === "GET"/);
+  assert.match(api, /Nu am putut încărca progresul/);
+  assert.match(api, /Nu am putut salva progresul/);
+});
+
 test("migration enforces upsert uniqueness only when no equivalent unique index exists", () => {
   const migration = readFileSync(join(__dirname, "..", "supabase", "migrations", "20260730000000_extend_blueprint_answers_vertical_slice.sql"), "utf8");
   assert.equal((migration.match(/if not exists \(/g) || []).length, 3);

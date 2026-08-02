@@ -6,6 +6,12 @@ const { authenticatedClient } = require("../../lib/server/supabase");
 const MAX_ANSWER_LENGTH = 8000;
 const MAX_ADJUSTMENT_LENGTH = 2000;
 
+function persistenceErrorMessage(method) {
+  return method === "GET"
+    ? "Nu am putut încărca progresul. Încearcă din nou."
+    : "Nu am putut salva progresul. Încearcă din nou.";
+}
+
 async function askClaude(prompt, json = false) {
   if (!process.env.ANTHROPIC_API_KEY) throw new Error("Anthropic server configuration is missing");
   const response = await fetch("https://api.anthropic.com/v1/messages", {
@@ -122,7 +128,10 @@ export default async function handler(req, res) {
 
     records = await load(client, user.id);
     return res.status(200).json({ content: CONTENT, state: blueprintState(records.blueprint, records.sections, records.answers), paused: action === "pause" });
-  } catch (error) { console.error("Blueprint API error:", error); return res.status(500).json({ error: "Nu am putut salva progresul. Încearcă din nou." }); }
+  } catch (error) {
+    console.error("Blueprint API error:", error);
+    return res.status(500).json({ error: persistenceErrorMessage(req.method) });
+  }
 }
 
-export { MAX_ADJUSTMENT_LENGTH, MAX_ANSWER_LENGTH };
+export { MAX_ADJUSTMENT_LENGTH, MAX_ANSWER_LENGTH, persistenceErrorMessage };
