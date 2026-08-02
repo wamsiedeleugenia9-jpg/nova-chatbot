@@ -1,17 +1,109 @@
 {
-  "contentStatus": "temporary-placeholder-awaiting-approved-ewa-mvp-document",
+  "contentStatus": "official-ewa-mvp",
   "id": "creator-blueprint",
   "title": "Creator Blueprint",
-  "introduction": "[TEXT TEMPORAR — înlocuiește cu deschiderea oficială Creator Blueprint din EWA MVP Document Complet]",
-  "atelier": {
-    "id": "atelier-1",
-    "number": 1,
-    "title": "[TITLU TEMPORAR — înlocuiește cu titlul oficial Atelierul 1 — Tu]",
-    "introduction": "[TEXT TEMPORAR — înlocuiește cu deschiderea oficială Atelierul 1 — Tu]",
-    "question": {
-      "id": "atelier-1-question-1",
-      "number": 1,
-      "text": "[TEXT TEMPORAR — înlocuiește cu formularea completă oficială a Întrebării 1, care începe cu «Ce te-a adus aici acum? Nu răspunde ca pentru un formular...»]"
+  "introduction": "Bine ai venit. Înainte să creăm primul tău Reel, prima ta postare sau primul tău produs digital, vreau să facem ceva mai important. Vreau să înțeleg cine ești. Nu ca să îți dau răspunsuri generale. Ci ca să construim, de aici înainte, ceva care are legătură cu tine. Cu vocea ta. Cu valorile tale. Cu felul tău de a vedea lumea. Cu oamenii pe care vrei să îi ajuți.",
+  "validation": "Recunoști în aceste rânduri ce ai vrut să spui? Dacă da, mergem mai departe. Dacă ceva nu sună ca tine, ajustăm acum.",
+  "adjustmentOptions": ["Prea formal", "Prea vânzător", "Prea rece", "Prea lung", "Prea generic", "Sună forțat", "Nu folosește cuvintele mele"],
+  "ateliers": [
+    {
+      "number": 1, "title": "Tu",
+      "purpose": "Să înțeleagă cine este utilizatoarea înainte să afle ce vinde.",
+      "introduction": "Mulți încep cu întrebarea: Ce să postez? Noi nu începem de acolo. Noi începem cu întrebarea: Cine ești tu ca om și ca viitoare creatoare? Pentru că un conținut bun nu pornește dintr-un trend. Pornește dintr-o identitate clară.",
+      "questions": [
+        "Ce te-a adus aici acum? Nu răspunde ca pentru un formular. Răspunde ca și cum ai vorbi cu cineva care chiar vrea să înțeleagă. Ce simți că nu mai vrei să amâni? Ce ai vrea să construiești? Ce te-a făcut să spui: Acum trebuie să încep?",
+        "Despre ce subiect ai putea vorbi ore întregi fără să te plictisești? Nu neapărat ceva profesional. Ceva care te aprinde.",
+        "Ce experiență din viața ta — dificilă, neașteptată sau transformatoare — crezi că te-a format cel mai mult ca om?",
+        "Ce valori nu ai negocia niciodată? Nici în viață, nici în ce vei crea.",
+        "Dacă peste un an, cineva care te urmărește ar trebui să spună un singur lucru despre tine și despre ce ai construit — ce ai vrea să spună?"
+      ],
+      "summaryLead": "Am tot ce îmi trebuie pentru a începe să construiesc profilul tău creativ. Înainte să trecem mai departe, iată ce am înțeles despre tine până acum:",
+      "summaryInstruction": "Construiește un rezumat scurt, interpretat, în 4-5 rânduri. Nu repeta răspunsurile; transformă-le în identitate.",
+      "next": "Din răspunsurile tale am construit prima parte din Creator Blueprint. Aceasta este baza ta de identitate. O vom folosi mai departe când construim clientul, oferta, vocea și conținutul. Atelierul 2 este despre omul pentru care vei crea. Continuăm mâine sau acum?"
+    },
+    {
+      "number": 2, "title": "Clientul",
+      "purpose": "Să scoată creatoarea din ideea «vreau să ajut pe toată lumea» și să o ducă spre «știu exact pentru cine creez».",
+      "introduction": "Acum că știu cine ești, vreau să înțeleg pentru cine creezi. Nu vrem să inventăm un client perfect. Vrem să recunoaștem un om real. Cu cât ești mai specific despre pentru cine creezi, cu atât mai mulți oameni potriviți te vor recunoaște și vor spune: aceasta vorbește despre mine.",
+      "questions": [
+        "Gândește-te la un om concret — nu o categorie, ci o persoană reală sau imaginară — care are cea mai mare nevoie de ce vrei tu să creezi. Cum arată viața lui acum? Nu începe cu vârsta, jobul sau orașul. Începe cu ce simte dimineața când se trezește.",
+        "Ce a încercat deja să facă pentru a rezolva asta? Pentru că omul tău ideal nu stă pasiv. A căutat soluții. Poate a cumpărat cursuri. Poate a urmărit creatori. Ce nu a funcționat și de ce?",
+        "Ce își dorește cu adevărat? Nu ce crede că vrea. Nu ce spune că vrea. Ce speră în secret că se va întâmpla dacă găsește soluția potrivită?",
+        "Ce îl oprește acum? Nu lipsa de informație — informație există peste tot. Ce îl face să amâne, să se îndoiască, să nu facă pasul?"
+      ],
+      "summaryLead": "Am înțeles pentru cine creezi. Iată cum arată omul tău, în câteva rânduri:",
+      "summaryInstruction": "Construiește un portret scurt, viu, la persoana a treia: ce simte, ce încearcă, ce vrea și ce îl oprește.",
+      "next": "Am adăugat profilul clientului tău în Creator Blueprint. Atelierul 3 este despre transformare. Nu despre ce vinzi. Ci despre cum arată viața clientului tău după ce lucrează cu tine. Acolo se naște brandul. Continuăm?"
+    },
+    {
+      "number": 3, "title": "Transformarea",
+      "purpose": "Să definească schimbarea pentru care clientul ar plăti.",
+      "introduction": "Oamenii nu cumpără doar produse. Cumpără schimbarea pe care produsul o face posibilă. Dacă nu știi exact ce versiune oferi tu, conținutul tău va fi bun, dar nu va vinde. În acest atelier construim transformarea. Aceasta este piesa centrală a brandului tău.",
+      "questions": [
+        "Cum arată viața omului tău acum, în cel mai sincer mod posibil? Nu ca statistică. Ca stare. Ce simte? Ce îl apasă? Ce îl face să se culce seara cu senzația că ceva nu e în regulă?",
+        "Dacă omul tău ar lucra cu tine trei, șase, douăsprezece luni... Cum arată dimineața lui? Ce s-a schimbat? Nu în CV-ul lui. În felul în care se simte în propria viață.",
+        "Care este momentul exact în care omul tău realizează că ceva s-a schimbat? Nu trebuie să fie un moment spectaculos. Poate fi un semn mic, dar clar. Poate fi prima postare. Primul mesaj primit. Prima dată când spune: știu ce am de făcut.",
+        "Dacă ar trebui să spui în două propoziții ce transformare oferi tu, fără să menționezi niciun produs, niciun format, niciun preț... Cum ar suna?"
+      ],
+      "summaryLead": "Aceasta este transformarea pe care o oferi. Iată cum o văd eu, după tot ce mi-ai spus:",
+      "summaryInstruction": "Construiește o declarație de transformare în 3-4 rânduri, înainte și după, fără jargon.",
+      "next": "Dacă sună ca tine, aceasta devine ancora brandului tău. Atelierul 4 este despre ofertă. Nu despre ce vrei să vinzi. Ci despre ce are sens să creezi primul. Continuăm?"
+    },
+    {
+      "number": 4, "title": "Oferta",
+      "purpose": "Să transforme claritatea în prima ofertă realistă, simplă, vandabilă.",
+      "introduction": "Avem acum ceva rar. Știm cine ești tu, pentru cine creezi și ce schimbi în viața lui. Acum vine întrebarea practică: Ce creezi primul? Nu cel mai bun produs posibil. Nu cel mai complet. Primul. Cel care poate fi creat, vândut și livrat fără să te blochezi luni întregi.",
+      "questions": [
+        "Pornind de la transformarea pe care o oferi, care este primul pas concret pe care clienta ta trebuie să îl facă? Nu tot drumul. Primul pas.",
+        "Acel prim pas poate fi livrat ca: Un ghid scurt (15-30 de pagini). Un workbook cu exerciții. Un checklist aplicabil. Un mini curs de 3-5 lecții scurte. Un workshop de o oră. Un serviciu direct. Care dintre acestea ți se pare cel mai natural să creezi acum?",
+        "La ce preț ai vinde această primă ofertă? Nu prețul perfect. Nu prețul pentru totdeauna. Prețul primei versiuni. Prețul la care tu ai cumpăra-o dacă ai fi clienta ta. Și prețul la care clienta ta ar spune: are sens, încerc.",
+        "Dacă ar trebui să descrii această primă ofertă într-o singură propoziție, fără să menționezi formatul sau prețul... Cum ar suna?"
+      ],
+      "summaryLead": "Aceasta este prima ta ofertă. Iată cum o văd eu acum:",
+      "summaryInstruction": "Rezuma oferta: pentru cine este, ce face, formatul, prețul aproximativ și transformarea produsă.",
+      "next": "Am adăugat prima ta ofertă în Creator Blueprint. Atelierul 5 este despre voce. Nu despre cum sună un text frumos. Ci despre cum suni tu. Din acest atelier, EWA va genera conținut doar pentru tine. Continuăm?"
+    },
+    {
+      "number": 5, "title": "Vocea",
+      "purpose": "Să transforme EWA din generator de texte în generator de texte care sună ca utilizatoarea.",
+      "introduction": "Acum știm ce vrei să construiești. Dar mai lipsește ceva esențial. Felul în care vorbești. Două persoane pot vinde același tip de produs, către același tip de client, cu aceeași promisiune. Dar una va suna rece. Alta va suna forțat. Alta va suna exact ca ea. În acest atelier nu căutăm o voce perfectă. Căutăm vocea ta. De aici înainte, EWA va folosi acest profil de voce ori de câte ori creez conținut pentru tine.",
+      "questions": [
+        "Gândește-te la ultima conversație în care ai explicat ceva cuiva și ai simțit că ai fost înțeleasă perfect. Cum vorbeai în acel moment? Rapid sau rar? Direct sau cu povești? Serios sau cu umor?",
+        "Când cineva îți citește un text, cum vrei să se simtă? Alege maximum trei stări: Înțeleasă. Motivată. Calmă. Provocată. Inspirată. În siguranță. Entuziasmată. Clară. Văzută. Puternică.",
+        "Există cuvinte, expresii sau tonuri pe care nu le-ai folosi niciodată? Unii evită cuvinte ca «succes», «libertate financiară», «pasiune», pentru că sună gol. Ce nu sună ca tine?",
+        "Dacă ai descrie stilul tău de comunicare în trei cuvinte, care ar fi acelea? Nu cum vrei să pari. Cum ești deja când ești la cel mai bun al tău."
+      ],
+      "summaryLead": "Am înțeles cum vorbești. Iată profilul vocii tale, așa cum îl văd eu:",
+      "summaryInstruction": "Construiește un ghid de voce scurt: cum sună, energia transmisă, ce evită și cele trei cuvinte definitorii.",
+      "next": "Vocea ta nu trebuie să fie perfectă. Trebuie să fie a ta. Atelierul 6 este despre conținut. Nu despre ce să postezi. Ci despre unde ești prezentă, cât timp ai și ce format ți se potrivește cu adevărat. Continuăm?"
+    },
+    {
+      "number": 6, "title": "Conținutul",
+      "purpose": "Să stabilească sistemul de conținut realist pe care utilizatoarea îl poate susține.",
+      "introduction": "Acum știm cine ești, pentru cine creezi, ce transformare oferi, ce vinzi prima dată și cum vorbești. Dar mai avem nevoie de ceva foarte practic. Un sistem de conținut pe care îl poți susține. Nu cel mai impresionant. Nu cel mai complicat. Cel pe care îl poți face și într-o săptămână aglomerată. Mulți creatori renunță nu pentru că nu au idei. Renunță pentru că își construiesc un plan care nu ar arăta bine pe hârtie în viața lor. În acest atelier nu alegem ce ar arăta bine pe hârtie. Alegem ce poți susține.",
+      "questions": [
+        "Câte minute pe zi poți aloca creării de conținut în mod realist? Nu în zilele bune. În zilele normale, când ești obosită, când ai alte responsabilități, când viața se întâmplă. 10 minute? 30? O oră?",
+        "Pe care dintre aceste platforme ești deja prezentă sau ți se pare natural să fii? TikTok. Instagram. Facebook. Threads. LinkedIn. Pinterest. YouTube. Nu alege toate. Alege maximum două cu care rezonezi acum.",
+        "Există un tip de conținut care ți se pare mai natural decât altele? Video scurt. Text și poveste. Imagini cu caption. Carusel cu pași. Care format simți că seamănă cel mai mult cu felul în care comunici natural?",
+        "Cât de des poți publica în mod realist? Zilnic. De trei ori pe săptămână. O dată pe săptămână. Nu răspunsul ideal. Răspunsul sustenabil. Pentru că un creator care publică o dată pe săptămână timp de un an bate unul care publică zilnic timp de trei săptămâni și dispare."
+      ],
+      "summaryLead": "Iată sistemul tău de conținut realist:",
+      "summaryInstruction": "Construiește un sistem simplu: platformele, frecvența realistă, formatul potrivit și timpul disponibil transformat într-un ritm săptămânal concret.",
+      "next": "Atelierul 7 este despre business. Nu despre vise mari. Ci despre ce înseamnă succesul pentru tine în termeni concreți și ce obiectiv urmărești în următoarele 90 de zile. Continuăm?"
+    },
+    {
+      "number": 7, "title": "Business",
+      "purpose": "Să transforme dorința într-un obiectiv măsurabil pentru următoarele 90 de zile.",
+      "introduction": "Acum avem identitatea, clientul, transformarea, oferta, vocea și sistemul tău de conținut. Dar un business nu crește doar pentru că postezi. Crește când știi ce urmărești. În acest atelier nu alegem un vis mare. Alegem un obiectiv concret pentru următoarele 90 de zile. Un obiectiv suficient de clar încât să știm dacă ai progresat. Nu trebuie să fie impresionant. Trebuie să fie măsurabil.",
+      "questions": [
+        "Când te gândești la următoarele 90 de zile, ce îți dorești cel mai mult să se fi întâmplat? Nu răspunsul corect. Primul gând sincer.",
+        "Dintre variantele de mai jos, care se apropie cel mai mult de ce ai spus? Primele vânzări (1, 3, 5, 10). Primul venit (50, 100, 300, 500 euro). Prima audiență activă (50, 100, 500 de oameni care urmăresc, salvează, comentează sau revin). Prima listă de email. Primul produs lansat. Prima validare.",
+        "Ce ar trebui să se întâmple în prima săptămână ca să știi că ești pe drumul corect? Nu în 90 de zile. În prima săptămână. Un singur lucru mic, concret, verificabil.",
+        "Ce te-ar putea opri? Nu în general. Ce știi deja despre tine că poate deveni obstacol? Oboseala. Îndoiala. Lipsa de timp. Perfecționismul. Frica de judecată. Numește-l."
+      ],
+      "summaryLead": "Iată obiectivul tău pentru următoarele 90 de zile:",
+      "summaryInstruction": "Construiește un obiectiv clar în trei rânduri: ce urmărește, cum arată prima săptămână și obstacolul numit, cu o notă despre cum îl poate gestiona.",
+      "next": "Un obiectiv bun nu te intimidează. Te orientează. Am adăugat obiectivul tău în Creator Blueprint. A mai rămas un singur atelier. Atelierul 8 este finalul. Creator DNA. Documentul care rămâne cu tine. Continuăm?"
     }
-  }
+  ]
 }
