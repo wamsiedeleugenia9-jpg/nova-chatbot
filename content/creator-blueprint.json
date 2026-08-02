@@ -1,17 +1,126 @@
 {
-  "contentStatus": "temporary-placeholder-awaiting-approved-ewa-mvp-document",
   "id": "creator-blueprint",
   "title": "Creator Blueprint",
-  "introduction": "[TEXT TEMPORAR — înlocuiește cu deschiderea oficială Creator Blueprint din EWA MVP Document Complet]",
-  "atelier": {
-    "id": "atelier-1",
-    "number": 1,
-    "title": "[TITLU TEMPORAR — înlocuiește cu titlul oficial Atelierul 1 — Tu]",
-    "introduction": "[TEXT TEMPORAR — înlocuiește cu deschiderea oficială Atelierul 1 — Tu]",
-    "question": {
-      "id": "atelier-1-question-1",
+  "introduction": "Bine ai venit. Inainte sa cream primul tau Reel, prima ta postare sau primul tau produs digital, vreau sa facem ceva mai important. Vreau sa inteleg cine esti. Nu ca sa iti dau raspunsuri generale. Ci ca sa construim, de aici inainte, ceva care are legatura cu tine. Cu vocea ta. Cu valorile tale. Cu felul tau de a vedea lumea. Cu oamenii pe care vrei sa ii ajuti.",
+  "ateliers": [
+    {
       "number": 1,
-      "text": "[TEXT TEMPORAR — înlocuiește cu formularea completă oficială a Întrebării 1, care începe cu «Ce te-a adus aici acum? Nu răspunde ca pentru un formular...»]"
+      "title": "Tu",
+      "purpose": "sa inteleaga cine este utilizatoarea inainte sa afle ce vinde.",
+      "introduction": "Multi incep cu intrebarea: Ce sa postez? Noi nu incepem de acolo. Noi incepem cu intrebarea: Cine esti tu ca om si ca viitoare creatoare? Pentru ca un continut bun nu porneste dintr-un trend. Porneste dintr-o identitate clara.",
+      "questions": [
+        { "number": 1, "text": "Ce te-a adus aici acum? Nu raspunde ca pentru un formular. Raspunde ca si cum ai vorbi cu cineva care chiar vrea sa inteleaga. Ce simti ca nu mai vrei sa amani? Ce ai vrea sa construiesti? Ce te-a facut sa spui: Acum trebuie sa incep?" },
+        { "number": 2, "text": "Despre ce subiect ai putea vorbi ore intregi fara sa te plictisesti? Nu neaparat ceva profesional. Ceva care te aprinde." },
+        { "number": 3, "text": "Ce experienta din viata ta — dificila, neasteptata sau transformatoare — crezi ca te-a format cel mai mult ca om?" },
+        { "number": 4, "text": "Ce valori nu ai negocia niciodata? Nici in viata, nici in ce vei crea." },
+        { "number": 5, "text": "Daca peste un an, cineva care te urmareste ar trebui sa spuna un singur lucru despre tine si despre ce ai construit — ce ai vrea sa spuna?" }
+      ],
+      "closing": {
+        "lead": "Am tot ce imi trebuie pentru a incepe sa construiesc profilul tau creativ. Inainte sa trecem mai departe, iata ce am inteles despre tine pana acum:",
+        "summaryInstruction": "EWA genereaza un rezumat scurt, interpretat, in 4-5 randuri. Nu repeta raspunsurile. Le transforma in identitate.",
+        "validation": "Spune-mi daca acest rezumat te reprezinta. Daca ceva nu suna ca tine, corectam acum. Profilul tau creativ trebuie sa fie al tau, nu o interpretare frumoasa care nu ti se potriveste.",
+        "transition": "Din raspunsurile tale am construit prima parte din Creator Blueprint. Aceasta este baza ta de identitate. O vom folosi mai departe cand construim clientul, oferta, vocea si continutul. Atelierul 2 este despre omul pentru care vei crea. Continuam maine sau acum?"
+      }
+    },
+    {
+      "number": 2,
+      "title": "Clientul",
+      "purpose": "sa scoata creatoarea din ideea 'vreau sa ajut pe toata lumea' si sa o duca spre 'stiu exact pentru cine creez'.",
+      "introduction": "Acum ca stiu cine esti, vreau sa inteleg pentru cine creezi. Nu vrem sa inventam un client perfect. Vrem sa recunoastem un om real. Cu cat esti mai specific despre pentru cine creezi, cu atat mai multi oameni potriviti te vor recunoaste si vor spune: aceasta vorbeste despre mine.",
+      "questions": [
+        { "number": 1, "text": "Gandeste-te la un om concret — nu o categorie, ci o persoana reala sau imaginara — care are cea mai mare nevoie de ce vrei tu sa creezi. Cum arata viata lui acum? Nu incepe cu varsta, jobul sau orasul. Incepe cu ce simte dimineata cand se trezeste." },
+        { "number": 2, "text": "Ce a incercat deja sa faca pentru a rezolva asta? Pentru ca omul tau ideal nu sta pasiv. A cautat solutii. Poate a cumparat cursuri. Poate a urmarit creatori. Ce nu a functionat si de ce?" },
+        { "number": 3, "text": "Ce isi doreste cu adevarat? Nu ce crede ca vrea. Nu ce spune ca vrea. Ce spera in secret ca se va intampla daca gaseste solutia potrivita?" },
+        { "number": 4, "text": "Ce il opreste acum? Nu lipsa de informatie — informatie exista peste tot. Ce il face sa amane, sa se indoiasca, sa nu faca pasul?" }
+      ],
+      "closing": {
+        "lead": "Am inteles pentru cine creezi. Iata cum arata omul tau, in cateva randuri:",
+        "summaryInstruction": "EWA construieste un portret scurt, viu, in persoana a treia. Ce simte, ce incearca, ce vrea, ce il opreste.",
+        "transition": "Recunosti acest om? Daca da, avem clientul tau ideal definit. Profilul clientului tau trebuie sa fie clar, dar si viu. Daca pare prea general, il mai rafinam. Am adaugat profilul clientului tau in Creator Blueprint. Atelierul 3 este despre transformare. Nu despre ce vinzi. Ci despre cum arata viata clientului tau dupa ce lucreaza cu tine. Acolo se naste brandul. Continuam?"
+      }
+    },
+    {
+      "number": 3,
+      "title": "Transformarea",
+      "purpose": "sa defineasca schimbarea pentru care clientul ar plati.",
+      "introduction": "Oamenii nu cumpara doar produse. Cumpara schimbarea pe care produsul o face posibila. Daca nu stii exact ce versiune oferi tu, continutul tau va fi bun, dar nu va vinde. In acest atelier construim transformarea. Aceasta este piesa centrala a brandului tau.",
+      "questions": [
+        { "number": 1, "text": "Cum arata viata omului tau acum, in cel mai sincer mod posibil? Nu ca statistica. Ca stare. Ce simte? Ce il apasa? Ce il face sa se culce seara cu senzatia ca ceva nu e in regula?" },
+        { "number": 2, "text": "Daca omul tau ar lucra cu tine trei, sase, doisprezece luni... Cum arata dimineata lui? Ce s-a schimbat? Nu in CV-ul lui. In felul in care se simte in propria viata." },
+        { "number": 3, "text": "Care este momentul exact in care omul tau realizeaza ca ceva s-a schimbat? Nu trebuie sa fie un moment spectaculos. Poate fi un semn mic, dar clar. Poate fi prima postare. Primul mesaj primit. Prima data cand spune: stiu ce am de facut." },
+        { "number": 4, "text": "Daca ar trebui sa spui in doua propozitii ce transformare oferi tu, fara sa mentionezi niciun produs, niciun format, niciun pret... Cum ar suna?" }
+      ],
+      "closing": {
+        "lead": "Aceasta este transformarea pe care o oferi. Iata cum o vad eu, dupa tot ce mi-ai spus:",
+        "summaryInstruction": "EWA construieste o declaratie de transformare in 3-4 randuri. Inainte si dupa. Fara jargon.",
+        "transition": "Recunosti in aceste randuri ce vrei sa oferi? Daca suna ca tine, aceasta devine ancora brandului tau. Atelierul 4 este despre oferta. Nu despre ce vrei sa vinzi. Ci despre ce are sens sa creezi primul. Continuam?"
+      }
+    },
+    {
+      "number": 4,
+      "title": "Oferta",
+      "purpose": "sa transforme claritatea in prima oferta realista, simpla, vandabila.",
+      "introduction": "Avem acum ceva rar. Stim cine esti tu, pentru cine creezi si ce schimbi in viata lui. Acum vine intrebarea practica: Ce creezi primul? Nu cel mai bun produs posibil. Nu cel mai complet. Primul. Cel care poate fi creat, vandut si livrat fara sa te blochezi luni intregi.",
+      "questions": [
+        { "number": 1, "text": "Pornind de la transformarea pe care o oferi, care este primul pas concret pe care clienta ta trebuie sa il faca? Nu tot drumul. Primul pas." },
+        { "number": 2, "text": "Acel prim pas poate fi livrat ca: Un ghid scurt (15-30 de pagini). Un workbook cu exercitii. Un checklist aplicabil. Un mini curs de 3-5 lectii scurte. Un workshop de o ora. Un serviciu direct. Care dintre acestea ti se pare cel mai natural sa creezi acum?" },
+        { "number": 3, "text": "La ce pret ai vinde aceasta prima oferta? Nu pretul perfect. Nu pretul pentru totdeauna. Pretul primei versiuni. Pretul la care tu ai cumpara-o daca ai fi clienta ta. Si pretul la care clienta ta ar spune: are sens, incerc." },
+        { "number": 4, "text": "Daca ar trebui sa descrii aceasta prima oferta intr-o singura propozitie, fara sa mentionezi formatul sau pretul... Cum ar suna?" }
+      ],
+      "closing": {
+        "lead": "Aceasta este prima ta oferta. Iata cum o vad eu acum:",
+        "summaryInstruction": "EWA construieste un rezumat al ofertei: pentru cine e, ce face, in ce format, la ce pret aproximativ, ce transformare produce.",
+        "transition": "Am adaugat prima ta oferta in Creator Blueprint. Atelierul 5 este despre voce. Nu despre cum suna un text frumos. Ci despre cum suni tu. Din acest atelier, EWA va genera continut doar pentru tine. Continuam?"
+      }
+    },
+    {
+      "number": 5,
+      "title": "Vocea",
+      "purpose": "sa transforme EWA din generator de texte in generator de texte care suna ca utilizatoarea.",
+      "introduction": "Acum stim ce vrei sa construiesti. Dar mai lipseste ceva esential. Felul in care vorbesti. Doua persoane pot vinde acelasi tip de produs, catre acelasi tip de client, cu aceeasi promisiune. Dar una va suna rece. Alta va suna fortat. Alta va suna exact ca ea. In acest atelier nu cautam o voce perfecta. Cautam vocea ta. De aici inainte, EWA va folosi acest profil de voce ori de cate ori creez continut pentru tine.",
+      "questions": [
+        { "number": 1, "text": "Gandeste-te la ultima conversatie in care ai explicat ceva cuiva si ai simtit ca ai fost inteleasa perfect. Cum vorbeai in acel moment? Rapid sau rar? Direct sau cu povesti? Serios sau cu umor?" },
+        { "number": 2, "text": "Cand cineva iti citeste un text, cum vrei sa se simta? Alege maximum trei stari: Inteleasa. Motivata. Calma. Provocata. Inspirata. In siguranta. Entuziasmata. Clara. Vazuta. Puternica." },
+        { "number": 3, "text": "Exista cuvinte, expresii sau tonuri pe care nu le-ai folosi niciodata? Unii evita cuvinte ca 'succes', 'libertate financiara', 'pasiune', pentru ca suna gol. Ce nu suna ca tine?" },
+        { "number": 4, "text": "Daca ai descrie stilul tau de comunicare in trei cuvinte, care ar fi acelea? Nu cum vrei sa pari. Cum esti deja cand esti la cel mai bun al tau." }
+      ],
+      "closing": {
+        "lead": "Am inteles cum vorbesti. Iata profilul vocii tale, asa cum il vad eu:",
+        "summaryInstruction": "EWA construieste un scurt ghid de voce personalizat. Cum suna, ce energie transmite, ce evita, ce trei cuvinte o definesc.",
+        "transition": "Recunosti in aceste randuri felul in care vorbesti? Vocea ta nu trebuie sa fie perfecta. Trebuie sa fie a ta. Atelierul 6 este despre continut. Nu despre ce sa postezi. Ci despre unde esti prezenta, cat timp ai si ce format ti se potriveste cu adevarat. Continuam?"
+      }
+    },
+    {
+      "number": 6,
+      "title": "Continutul",
+      "purpose": "sa stabileasca sistemul de continut realist pe care utilizatoarea il poate sustine.",
+      "introduction": "Acum stim cine esti, pentru cine creezi, ce transformare oferi, ce vinzi prima data si cum vorbesti. Dar mai avem nevoie de ceva foarte practic. Un sistem de continut pe care il poti sustine. Nu cel mai impresionant. Nu cel mai complicat. Cel pe care il poti face si intr-o saptamana aglomerata. Multi creatori renunta nu pentru ca nu au idei. Renunta pentru ca isi construiesc un plan care nu ar arata bine pe hartie in viata lor. In acest atelier nu alegem ce ar arata bine pe hartie. Alegem ce poti sustine.",
+      "questions": [
+        { "number": 1, "text": "Cate minute pe zi poti aloca crearii de continut in mod realist? Nu in zilele bune. In zilele normale, cand esti obosita, cand ai alte responsabilitati, cand viata se intampla. 10 minute? 30? O ora?" },
+        { "number": 2, "text": "Pe care dintre aceste platforme esti deja prezenta sau ti se pare natural sa fii? TikTok. Instagram. Facebook. Threads. LinkedIn. Pinterest. YouTube. Nu alege toate. Alege maximum doua cu care rezonezi acum." },
+        { "number": 3, "text": "Exista un tip de continut care ti se pare mai natural decat altele? Video scurt. Text si poveste. Imagini cu caption. Carusel cu pasi. Care format simti ca seamana cel mai mult cu felul in care comunici natural?" },
+        { "number": 4, "text": "Cat de des poti publica in mod realist? Zilnic. De trei ori pe saptamana. O data pe saptamana. Nu raspunsul ideal. Raspunsul sustenabil. Pentru ca un creator care publica o data pe saptamana timp de un an bate unul care publica zilnic timp de trei saptamani si dispare." }
+      ],
+      "closing": {
+        "summaryInstruction": "EWA construieste un sistem simplu, personalizat: platformele alese, frecventa realista, formatul potrivit, timpul disponibil transformat intr-un ritm saptamanal concret.",
+        "transition": "Atelierul 7 este despre business. Nu despre vise mari. Ci despre ce inseamna succesul pentru tine in termeni concreti si ce obiectiv urmaresti in urmatoarele 90 de zile. Continuam?"
+      }
+    },
+    {
+      "number": 7,
+      "title": "Business",
+      "purpose": "sa transforme dorinta intr-un obiectiv masurabil pentru urmatoarele 90 de zile.",
+      "introduction": "Acum avem identitatea, clientul, transformarea, oferta, vocea si sistemul tau de continut. Dar un business nu creste doar pentru ca postezi. Creste cand stii ce urmaresti. In acest atelier nu alegem un vis mare. Alegem un obiectiv concret pentru urmatoarele 90 de zile. Un obiectiv suficient de clar incat sa stim daca ai progresat. Nu trebuie sa fie impresionant. Trebuie sa fie masurabil.",
+      "questions": [
+        { "number": 1, "text": "Cand te gandesti la urmatoarele 90 de zile, ce iti doresti cel mai mult sa se fi intamplat? Nu raspunsul corect. Primul gand sincer." },
+        { "number": 2, "text": "Dintre variantele de mai jos, care se apropie cel mai mult de ce ai spus? Primele vanzari (1, 3, 5, 10). Primul venit (50, 100, 300, 500 euro). Prima audienta activa (50, 100, 500 de oameni care urmaresc, salveaza, comenteaza sau revin). Prima lista de email. Primul produs lansat. Prima validare." },
+        { "number": 3, "text": "Ce ar trebui sa se intample in prima saptamana ca sa stii ca esti pe drumul corect? Nu in 90 de zile. In prima saptamana. Un singur lucru mic, concret, verificabil." },
+        { "number": 4, "text": "Ce te-ar putea opri? Nu in general. Ce stii deja despre tine ca poate deveni obstacol? Oboseala. Indoiala. Lipsa de timp. Perfectionismul. Frica de judecata. Numeste-l." }
+      ],
+      "closing": {
+        "summaryInstruction": "EWA construieste un obiectiv clar in trei randuri: ce urmareste, cum arata prima saptamana, si ce obstacol a numit cu o nota despre cum il poate gestiona.",
+        "transition": "Un obiectiv bun nu te intimideaza. Te orienteaza. Am adaugat obiectivul tau in Creator Blueprint. A mai ramas un singur atelier. Atelierul 8 este finalul. Creator DNA. Documentul care ramane cu tine. Continuam?"
+      }
     }
-  }
+  ]
 }
