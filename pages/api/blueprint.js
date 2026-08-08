@@ -1,6 +1,7 @@
 const CONTENT = require("../../content/creator-blueprint.json");
 const { BLUEPRINT_STATUS, SECTION_STATUS, blueprintState } = require("../../lib/blueprint/state");
 const { answerInterpretationPrompt, sectionSummaryPrompt } = require("../../lib/prompts/creatorBlueprint");
+const { summaryFromResponse, summaryRequestOptions } = require("../../lib/blueprint/summaryResponse");
 const { authenticatedClient } = require("../../lib/server/supabase");
 
 const MAX_ANSWER_LENGTH = 8000;
@@ -17,15 +18,20 @@ async function askClaude(prompt, json = false) {
   const response = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: { "Content-Type": "application/json", "x-api-key": process.env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01" },
-    body: JSON.stringify({ model: "claude-sonnet-4-6", max_tokens: 900, system: prompt.system, messages: [{ role: "user", content: prompt.message }] })
+    body: JSON.stringify({
+      model: "claude-sonnet-4-6",
+      max_tokens: 900,
+      system: prompt.system,
+      messages: [{ role: "user", content: prompt.message }],
+      ...(json ? summaryRequestOptions() : {})
+    })
   });
   if (!response.ok) { console.error("Blueprint Anthropic error:", response.status, await response.text()); throw new Error("Anthropic request failed"); }
-  const text = (await response.json()).content?.find(item => item.type === "text")?.text?.trim();
+  const content = (await response.json()).content;
+  if (json) return summaryFromResponse(content);
+  const text = content?.find(item => item.type === "text")?.text?.trim();
   if (!text) throw new Error("Anthropic returned empty content");
-  if (!json) return text;
-  const parsed = JSON.parse(text.replace(/^```json\s*|\s*```$/g, ""));
-  if (!parsed.summary || !Array.isArray(parsed.keyElements)) throw new Error("Invalid summary response");
-  return parsed;
+  return text;
 }
 
 async function load(client, userId) {
