@@ -21,6 +21,25 @@ test("malformed model JSON text cannot break a valid structured summary", () => 
   });
 });
 
+test("accepts the Anthropic tool input response with snake-case key elements", () => {
+  const response = [
+    {
+      type: "tool_use",
+      id: "toolu_01ProductionSummary",
+      name: SUMMARY_TOOL_NAME,
+      input: {
+        summary: "Atelierul clarifică direcția creatoarei.",
+        key_elements: [" direcție clară ", "", "public potrivit"]
+      }
+    }
+  ];
+
+  assert.deepEqual(summaryFromResponse(response), {
+    summary: "Atelierul clarifică direcția creatoarei.",
+    keyElements: ["direcție clară", "public potrivit"]
+  });
+});
+
 test("invalid structured summaries are rejected without parsing free-form text", () => {
   assert.throws(
     () => summaryFromResponse([{ type: "text", text: "```json\n{not valid}\n```" }]),
