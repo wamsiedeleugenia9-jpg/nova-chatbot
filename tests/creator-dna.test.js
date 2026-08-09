@@ -2,7 +2,7 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const { readFileSync } = require("node:fs");
 const { join } = require("node:path");
-const { CREATOR_DNA_KEYS, CREATOR_DNA_TOOL_NAME, appendWhy, creatorDnaFromResponse, creatorDnaRequestOptions } = require("../lib/blueprint/creatorDnaResponse");
+const { CREATOR_DNA_KEYS, CREATOR_DNA_TOOL_NAME, appendWhy, creatorDnaFromResponse, creatorDnaRequestOptions, creatorDnaResponseDiagnostics } = require("../lib/blueprint/creatorDnaResponse");
 const { creatorDnaPrompt } = require("../lib/prompts/creatorBlueprint");
 
 const generated = Object.fromEntries(CREATOR_DNA_KEYS.map(key => [key, `Text ${key}`]));
@@ -14,6 +14,36 @@ test("Creator DNA forces structured Sections 1–7 with every stable key", () =>
   assert.equal(options.tools[0].input_schema.additionalProperties, false);
   assert.deepEqual(creatorDnaFromResponse([{ type: "tool_use", name: CREATOR_DNA_TOOL_NAME, input: generated }]), generated);
   assert.throws(() => creatorDnaFromResponse([{ type: "tool_use", name: CREATOR_DNA_TOOL_NAME, input: { ...generated, voice: "" } }]), /invalid structured Creator DNA/);
+});
+
+test("Creator DNA accepts Anthropic's camel-case tool input and returns stable storage keys", () => {
+  const actualResponse = {
+    stop_reason: "tool_use",
+    content: [{ type: "tool_use", name: CREATOR_DNA_TOOL_NAME, input: {
+      creatorIdentity: generated.creator_identity,
+      audience: generated.audience,
+      transformation: generated.transformation,
+      offer: generated.offer,
+      voice: generated.voice,
+      contentSystem: generated.content_system,
+      businessGoal: generated.business_goal
+    } }]
+  };
+  assert.deepEqual(creatorDnaFromResponse(actualResponse), generated);
+});
+
+test("missing, duplicate, and malformed Creator DNA tool output is rejected with safe diagnostics", () => {
+  assert.throws(() => creatorDnaFromResponse({ content: [{ type: "text", text: "private output" }] }), error =>
+    error.code === "INVALID_CREATOR_DNA_RESPONSE" && error.reason === "missing_tool_output");
+  assert.throws(() => creatorDnaFromResponse({ content: [
+    { type: "tool_use", name: CREATOR_DNA_TOOL_NAME, input: generated },
+    { type: "tool_use", name: CREATOR_DNA_TOOL_NAME, input: generated }
+  ] }), error => error.reason === "duplicate_tool_output");
+  assert.throws(() => creatorDnaFromResponse([{ type: "tool_use", name: CREATOR_DNA_TOOL_NAME, input: { ...generated, extra: "no" } }]),
+    error => error.reason === "unexpected_or_duplicate_key");
+  const diagnostics = creatorDnaResponseDiagnostics({ stop_reason: "max_tokens", content: [{ type: "tool_use", name: CREATOR_DNA_TOOL_NAME, input: { voice: "secret" } }] });
+  assert.deepEqual(diagnostics, { stopReason: "max_tokens", contentType: "array", blocks: [{ type: "tool_use", name: CREATOR_DNA_TOOL_NAME, inputType: "object", inputKeys: ["voice"] }] });
+  assert.doesNotMatch(JSON.stringify(diagnostics), /secret/);
 });
 
 test("Section 8 is appended server-side exactly from the persisted raw answer", () => {
