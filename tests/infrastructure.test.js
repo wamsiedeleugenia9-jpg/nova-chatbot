@@ -69,14 +69,26 @@ test("runtime does not depend on an unapproved paused_at column", () => {
   assert.match(apiSource, /current_atelier: atelierNumber/);
 });
 
-test("canonical content contains the official seven Phase 3 ateliers", () => {
+test("canonical content contains all eight Creator Blueprint workshops", () => {
   const content = JSON.parse(readFileSync(join(__dirname, "..", "content", "creator-blueprint.json"), "utf8"));
   assert.equal(content.contentStatus, "official-ewa-mvp");
-  assert.equal(content.ateliers.length, 7);
-  assert.deepEqual(content.ateliers.map(item => item.questions.length), [5, 4, 4, 4, 4, 4, 4]);
+  assert.equal(content.ateliers.length, 8);
+  assert.deepEqual(content.ateliers.map(item => item.questions.length), [5, 4, 4, 4, 4, 4, 4, 1]);
   assert.equal(content.ateliers[0].title, "Tu");
   assert.equal(content.ateliers[6].title, "Business");
+  assert.equal(content.ateliers[7].title, "Creator DNA");
+  assert.equal(content.ateliers[7].questions[0], "Dacă ar trebui să spui într-o singură propoziție de ce faci asta, nu ce faci, nu cum faci, ci de ce... Ce ai spune? Nu răspunsul frumos. Răspunsul adevărat.");
   assert.equal(content.adjustmentOptions.length, 7);
+});
+
+test("Workshop 8 and completed Blueprint state restore without advancing beyond 8", () => {
+  const inProgress = blueprintState({ status: BLUEPRINT_STATUS.IN_PROGRESS, current_atelier: 8 }, [], [{ atelier_number: 8, question_number: 1, raw_answer: "De aceea.", interpreted_answer: "De aceea." }]);
+  assert.equal(inProgress.currentAtelier, 8);
+  assert.equal(inProgress.currentQuestion, 2);
+  const completed = blueprintState({ status: BLUEPRINT_STATUS.COMPLETED, current_atelier: 9 }, [], []);
+  assert.equal(completed.currentAtelier, 8);
+  assert.equal(completed.started, true);
+  assert.equal(completed.blueprintCompleted, true);
 });
 
 test("migration extends approved answers table without creating a parallel table", () => {
