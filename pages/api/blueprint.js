@@ -2,7 +2,7 @@ const CONTENT = require("../../content/creator-blueprint.json");
 const { BLUEPRINT_STATUS, SECTION_STATUS, blueprintState } = require("../../lib/blueprint/state");
 const { answerInterpretationPrompt, creatorDnaPrompt, sectionSummaryPrompt } = require("../../lib/prompts/creatorBlueprint");
 const { summaryFromResponse, summaryRequestOptions } = require("../../lib/blueprint/summaryResponse");
-const { appendWhy, creatorDnaFromResponse, creatorDnaRequestOptions } = require("../../lib/blueprint/creatorDnaResponse");
+const { appendWhy, creatorDnaFromResponse, creatorDnaRequestOptions, creatorDnaResponseDiagnostics } = require("../../lib/blueprint/creatorDnaResponse");
 const { authenticatedClient } = require("../../lib/server/supabase");
 
 const MAX_ANSWER_LENGTH = 8000;
@@ -43,7 +43,15 @@ async function askCreatorDna(prompt) {
     body: JSON.stringify({ model: "claude-sonnet-4-6", max_tokens: 2400, system: prompt.system, messages: [{ role: "user", content: prompt.message }], ...creatorDnaRequestOptions() })
   });
   if (!response.ok) { console.error("Creator DNA Anthropic error:", response.status, await response.text()); throw new Error("Anthropic request failed"); }
-  return creatorDnaFromResponse((await response.json()).content);
+  const payload = await response.json();
+  try {
+    return creatorDnaFromResponse(payload);
+  } catch (error) {
+    // Log structure only: Creator DNA text and the user's workshop answers must not
+    // be copied into diagnostics.
+    console.error("Creator DNA Anthropic response rejected:", creatorDnaResponseDiagnostics(payload), error.reason);
+    throw error;
+  }
 }
 
 async function load(client, userId) {
