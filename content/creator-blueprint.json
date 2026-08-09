@@ -104,6 +104,17 @@
       "summaryLead": "Iată obiectivul tău pentru următoarele 90 de zile:",
       "summaryInstruction": "Construiește un obiectiv clar în trei rânduri: ce urmărește, cum arată prima săptămână și obstacolul numit, cu o notă despre cum îl poate gestiona.",
       "next": "Un obiectiv bun nu te intimidează. Te orientează. Am adăugat obiectivul tău în Creator Blueprint. A mai rămas un singur atelier. Atelierul 8 este finalul. Creator DNA. Documentul care rămâne cu tine. Continuăm?"
+    },
+    {
+      "number": 8, "title": "Creator DNA",
+      "purpose": "Să surprindă motivul personal al creatoarei și să încheie Creator Blueprint.",
+      "introduction": "Am ajuns la finalul Creator Blueprint. Tot ce ai confirmat până aici va deveni Creator DNA — documentul care adună cine ești, pentru cine creezi și direcția pe care ai ales-o. Mai lipsește un singur lucru: motivul tău adevărat.",
+      "questions": [
+        "Dacă ar trebui să spui într-o singură propoziție de ce faci asta, nu ce faci, nu cum faci, ci de ce... Ce ai spune? Nu răspunsul frumos. Răspunsul adevărat."
+      ],
+      "summaryLead": "Acesta este motivul tău, exact în cuvintele tale:",
+      "summaryInstruction": "Păstrează răspunsul exact al utilizatoarei, fără rescriere, interpretare sau rezumare.",
+      "next": "Ai confirmat toate cele opt ateliere. Creator DNA este gata să fie construit."
     }
   ]
 }
