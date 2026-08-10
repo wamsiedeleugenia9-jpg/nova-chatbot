@@ -185,7 +185,7 @@ export default async function handler(req, res) {
             ? validateExtraction(JSON.parse(extractionText))
             : null;
           if (extraction) {
-            await saveExtractedMemory(auth.client, auth.user.id, extraction, workingMemory);
+            await saveExtractedMemory(auth.client, auth.user.id, extraction, workingMemory, latestUserMessage);
           }
         }
       }
