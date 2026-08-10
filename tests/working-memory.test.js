@@ -145,6 +145,8 @@ test("an independent plan for the same project is not treated as an explicit rep
   assert.equal(inserted.user_id, "user-a");
 });
 
+test("production correction rechecks active rows when the prompt snapshot is empty and updates instead of inserting", async () => {
+  const userMessage = "M-am răzgândit. Schimb planul pentru Instagram START Kit. Nu voi publica 5 postări săptămâna aceasta, ci 2 postări.";
 test("production correction flow overrides an independent model classification and updates the loaded active row", async () => {
   const userMessage = "M-am răzgândit. Săptămâna aceasta vreau să public 3 postări pe Instagram, nu 5. Promovăm în continuare START Kit.";
   const extractionResponse = {
@@ -153,24 +155,29 @@ test("production correction flow overrides an independent model classification a
       text: JSON.stringify({
         remember: true,
         category: "temporary_plan",
-        content: "Plan săptămânal Instagram: 3 postări pentru promovarea START Kit.",
+        content: "Plan săptămânal Instagram: 2 postări pentru promovarea START Kit.",
         project_key: "instagram_start_kit",
         memory_intent: "independent"
       })
     }]
   };
-  const loadedMemories = [
-    { id: "old-plan", category: "temporary_plan", content: "Plan săptămânal Instagram: 5 postări pentru promovarea START Kit.", project_key: "instagram_start_kit" },
-    { id: "next", category: "next_action", content: "Scrie postarea de luni.", project_key: "instagram_start_kit" },
-    { id: "hook", category: "content_decision", content: "Hook final X.", project_key: "instagram_start_kit" }
-  ];
+  const loadedMemories = [];
   let inserted = false;
   let update;
-  const filters = [];
-  const chain = { eq(column, value) { filters.push([column, value]); return filters.length === 3 ? Promise.resolve({ error: null }) : chain; } };
+  const updateFilters = [];
+  const readFilters = [];
+  const updateChain = { eq(column, value) { updateFilters.push([column, value]); return updateFilters.length === 3 ? Promise.resolve({ error: null }) : updateChain; } };
+  const readResult = { data: [{ id: "old-plan", category: "temporary_plan", project_key: "instagram_start_kit" }], error: null };
+  const readChain = {
+    select(columns) { assert.equal(columns, "id,category,project_key"); return readChain; },
+    eq(column, value) { readFilters.push([column, value]); return readChain; },
+    order() { return readChain; },
+    limit() { return Promise.resolve(readResult); }
+  };
   const client = { from() { return {
+    ...readChain,
     insert() { inserted = true; return Promise.resolve({ error: null }); },
-    update(value) { update = value; return chain; }
+    update(value) { update = value; return updateChain; }
   }; } };
 
   // Mirrors chat.js: parse strict structured text, validate it, then persist it
@@ -182,11 +189,10 @@ test("production correction flow overrides an independent model classification a
 
   assert.equal(hasExplicitCorrectionLanguage(userMessage), true);
   assert.deepEqual(result, { action: "replaced", id: "old-plan" });
-  assert.deepEqual(update, { content: "Plan săptămânal Instagram: 3 postări pentru promovarea START Kit." });
+  assert.deepEqual(update, { content: "Plan săptămânal Instagram: 2 postări pentru promovarea START Kit." });
   assert.equal(inserted, false);
-  assert.deepEqual(filters, [["id", "old-plan"], ["user_id", "user-a"], ["status", "active"]]);
-  assert.equal(loadedMemories[1].category, "next_action");
-  assert.equal(loadedMemories[2].category, "content_decision");
+  assert.deepEqual(readFilters, [["user_id", "user-a"], ["status", "active"], ["category", "temporary_plan"]]);
+  assert.deepEqual(updateFilters, [["id", "old-plan"], ["user_id", "user-a"], ["status", "active"]]);
 });
 
 test("server-side correction detection stays conservative", () => {
