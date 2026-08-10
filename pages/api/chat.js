@@ -2,7 +2,8 @@
 // Ruta server-side care inlocuieste apelul direct din browser catre Anthropic.
 // Cheia API nu mai ajunge niciodata in bundle-ul trimis clientului.
 
-import { getSupabaseServer } from "../../lib/supabaseServer";
+import { authenticatedClient } from "../../lib/server/supabase";
+import { loadCreatorDna, systemPromptWithCreatorDna } from "../../lib/chat/creatorDnaContext";
 
 const SYSTEM_PROMPT = `Esti EWA AI - asistenta AI de marketing digital pentru antreprenori din Romania. Raspunzi MEREU in romana. Esti directa, energica, calda. Cand cineva cere continut intrebi INTAI tonul preferat (Profesional / Prietenos / Empatic / Motivational / Amuzant), apoi generezi. TEHNICI NLP SI PSIHOLOGIA CONSUMATORULUI (aplica in tot continutul generat):
 1. RECIPROCITATE - Ofera valoare gratuita inainte de CTA. Ex: ghid gratuit, tip util → apoi CTA.
@@ -63,14 +64,22 @@ export default async function handler(req, res) {
     return res.status(401).json({ error: "Autentificare necesara." });
   }
 
+  let auth;
   try {
-    const { data, error } = await getSupabaseServer().auth.getUser(match[1]);
-    if (error || !data.user) {
-      return res.status(401).json({ error: "Sesiune invalida sau expirata." });
-    }
+    auth = await authenticatedClient(req);
+    if (!auth) return res.status(401).json({ error: "Sesiune invalida sau expirata." });
   } catch (error) {
     console.error("Eroare la verificarea autentificarii Supabase:", error);
     return res.status(500).json({ error: "Eroare de configurare server. Incearca mai tarziu." });
+  }
+
+  // Creator DNA remains server-side. A transient persistence failure must not
+  // prevent an otherwise valid chat request from using the existing behavior.
+  let creatorDna = null;
+  try {
+    creatorDna = await loadCreatorDna(auth.client, auth.user.id);
+  } catch (error) {
+    console.error("Eroare la incarcarea Creator DNA pentru chat:", error);
   }
 
   const ip =
@@ -116,7 +125,7 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         model: "claude-sonnet-4-6",
         max_tokens: 1000,
-        system: SYSTEM_PROMPT,
+        system: systemPromptWithCreatorDna(SYSTEM_PROMPT, creatorDna),
         messages: messages.map(m => ({ role: m.role, content: m.content }))
       })
     });
