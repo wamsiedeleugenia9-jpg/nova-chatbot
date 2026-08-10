@@ -4,6 +4,7 @@ const { readFileSync } = require("node:fs");
 const { join } = require("node:path");
 const {
   extractionSchema,
+  hasExplicitCorrectionLanguage,
   isNearDuplicate,
   loadWorkingMemory,
   memoryExtractionRequest,
@@ -142,6 +143,58 @@ test("an independent plan for the same project is not treated as an explicit rep
   }, [{ id: "plan", category: "temporary_plan", content: "3 postări în feed săptămâna aceasta.", project_key: "instagram_start_kit" }]);
   assert.equal(result.action, "created");
   assert.equal(inserted.user_id, "user-a");
+});
+
+test("production correction flow overrides an independent model classification and updates the loaded active row", async () => {
+  const userMessage = "M-am răzgândit. Săptămâna aceasta vreau să public 3 postări pe Instagram, nu 5. Promovăm în continuare START Kit.";
+  const extractionResponse = {
+    content: [{
+      type: "text",
+      text: JSON.stringify({
+        remember: true,
+        category: "temporary_plan",
+        content: "Plan săptămânal Instagram: 3 postări pentru promovarea START Kit.",
+        project_key: "instagram_start_kit",
+        memory_intent: "independent"
+      })
+    }]
+  };
+  const loadedMemories = [
+    { id: "old-plan", category: "temporary_plan", content: "Plan săptămânal Instagram: 5 postări pentru promovarea START Kit.", project_key: "instagram_start_kit" },
+    { id: "next", category: "next_action", content: "Scrie postarea de luni.", project_key: "instagram_start_kit" },
+    { id: "hook", category: "content_decision", content: "Hook final X.", project_key: "instagram_start_kit" }
+  ];
+  let inserted = false;
+  let update;
+  const filters = [];
+  const chain = { eq(column, value) { filters.push([column, value]); return filters.length === 3 ? Promise.resolve({ error: null }) : chain; } };
+  const client = { from() { return {
+    insert() { inserted = true; return Promise.resolve({ error: null }); },
+    update(value) { update = value; return chain; }
+  }; } };
+
+  // Mirrors chat.js: parse strict structured text, validate it, then persist it
+  // with both the memories loaded at request start and the latest user message.
+  const extractionText = extractionResponse.content?.[0]?.text;
+  const extraction = validateExtraction(JSON.parse(extractionText));
+  assert.equal(extraction.memory_intent, "independent", "reproduces the model misclassification seen in production");
+  const result = await saveExtractedMemory(client, "user-a", extraction, loadedMemories, userMessage);
+
+  assert.equal(hasExplicitCorrectionLanguage(userMessage), true);
+  assert.deepEqual(result, { action: "replaced", id: "old-plan" });
+  assert.deepEqual(update, { content: "Plan săptămânal Instagram: 3 postări pentru promovarea START Kit." });
+  assert.equal(inserted, false);
+  assert.deepEqual(filters, [["id", "old-plan"], ["user_id", "user-a"], ["status", "active"]]);
+  assert.equal(loadedMemories[1].category, "next_action");
+  assert.equal(loadedMemories[2].category, "content_decision");
+});
+
+test("server-side correction detection stays conservative", () => {
+  assert.equal(hasExplicitCorrectionLanguage("M-am răzgândit: facem trei postări."), true);
+  assert.equal(hasExplicitCorrectionLanguage("Corectez planul anterior."), true);
+  assert.equal(hasExplicitCorrectionLanguage("Nu 5 postări, ci 3."), true);
+  assert.equal(hasExplicitCorrectionLanguage("Adaug și trei stories pentru același proiect."), false);
+  assert.equal(hasExplicitCorrectionLanguage("Săptămâna aceasta publicăm trei postări."), false);
 });
 
 test("extraction uses a strict schema and conservative exclusions", () => {
