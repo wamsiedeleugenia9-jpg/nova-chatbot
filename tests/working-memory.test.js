@@ -147,6 +147,8 @@ test("an independent plan for the same project is not treated as an explicit rep
 
 test("production correction rechecks active rows when the prompt snapshot is empty and updates instead of inserting", async () => {
   const userMessage = "M-am răzgândit. Schimb planul pentru Instagram START Kit. Nu voi publica 5 postări săptămâna aceasta, ci 2 postări.";
+test("production correction flow overrides an independent model classification and updates the loaded active row", async () => {
+  const userMessage = "M-am răzgândit. Săptămâna aceasta vreau să public 3 postări pe Instagram, nu 5. Promovăm în continuare START Kit.";
   const extractionResponse = {
     content: [{
       type: "text",
