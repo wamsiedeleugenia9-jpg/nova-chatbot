@@ -4,6 +4,13 @@
 
 import { authenticatedClient } from "../../lib/server/supabase";
 import { loadCreatorDna, systemPromptWithCreatorDna } from "../../lib/chat/creatorDnaContext";
+import {
+  loadWorkingMemory,
+  memoryExtractionRequest,
+  saveExtractedMemory,
+  systemPromptWithWorkingMemory,
+  validateExtraction
+} from "../../lib/chat/workingMemory";
 
 const SYSTEM_PROMPT = `Esti EWA AI - asistenta AI de marketing digital pentru antreprenori din Romania. Raspunzi MEREU in romana. Esti directa, energica, calda. Daca nu ai deja un ton preferat in context si tonul este necesar pentru cerere, il poti clarifica. Nu cere informatii pe care le ai deja in context. TEHNICI NLP SI PSIHOLOGIA CONSUMATORULUI (aplica in tot continutul generat):
 1. RECIPROCITATE - Ofera valoare gratuita inainte de CTA. Ex: ghid gratuit, tip util → apoi CTA.
@@ -82,6 +89,15 @@ export default async function handler(req, res) {
     console.error("Eroare la incarcarea Creator DNA pentru chat:", error);
   }
 
+  // Working Memory is queried with the authenticated Supabase client. Its RLS
+  // token and this server-derived user id provide defense in depth.
+  let workingMemory = [];
+  try {
+    workingMemory = await loadWorkingMemory(auth.client, auth.user.id);
+  } catch (error) {
+    console.error("Eroare la incarcarea Working Memory pentru chat:", error);
+  }
+
   const ip =
     (req.headers["x-forwarded-for"] || "").split(",")[0].trim() ||
     req.socket?.remoteAddress ||
@@ -125,7 +141,10 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         model: "claude-sonnet-4-6",
         max_tokens: 1000,
-        system: systemPromptWithCreatorDna(SYSTEM_PROMPT, creatorDna),
+        system: systemPromptWithWorkingMemory(
+          systemPromptWithCreatorDna(SYSTEM_PROMPT, creatorDna),
+          workingMemory
+        ),
         messages: messages.map(m => ({ role: m.role, content: m.content }))
       })
     });
@@ -138,6 +157,41 @@ export default async function handler(req, res) {
 
     const data = await anthropicRes.json();
     const reply = data.content?.[0]?.text || "Nu am putut genera un raspuns. Incearca din nou.";
+
+    // Persistence is deliberately best-effort and happens only after the main
+    // response was generated successfully. Extraction/database errors cannot
+    // turn a successful chat into an error response.
+    try {
+      const latestUserMessage = [...messages].reverse().find(message => message.role === "user")?.content;
+      if (latestUserMessage) {
+        const extractionRes = await fetch("https://api.anthropic.com/v1/messages", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-api-key": process.env.ANTHROPIC_API_KEY,
+            "anthropic-version": "2023-06-01"
+          },
+          body: JSON.stringify(memoryExtractionRequest(latestUserMessage, reply))
+        });
+
+        if (!extractionRes.ok) {
+          console.error("Extractia Working Memory a esuat:", extractionRes.status);
+        } else {
+          const extractionData = await extractionRes.json();
+          const extractionText = extractionData.content?.[0]?.text;
+          // This text is emitted under Anthropic's strict json_schema output
+          // contract; local validation remains mandatory before persistence.
+          const extraction = typeof extractionText === "string"
+            ? validateExtraction(JSON.parse(extractionText))
+            : null;
+          if (extraction) {
+            await saveExtractedMemory(auth.client, auth.user.id, extraction, workingMemory);
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Eroare non-critica la actualizarea Working Memory:", error);
+    }
 
     return res.status(200).json({ reply });
   } catch (err) {
