@@ -82,9 +82,30 @@ test("Supabase failures are surfaced by the loader and chat handles them gracefu
 test("injected context guides personalization without disclosure or diagnosis", () => {
   const prompt = systemPromptWithCreatorDna("base", structuredCreatorDna(sections));
   assert.match(prompt, /Caldă și directă/);
-  assert.match(prompt, /Nu repeta, nu enumera și nu expune/);
-  assert.match(prompt, /Nu cere din nou informațiile deja prezente/);
+  assert.match(prompt, /Nu dezvălui, cita, rezuma, enumera sau menționa/);
+  assert.match(prompt, /Nu cere și nu solicita confirmarea unei informații deja disponibile/);
   assert.match(prompt, /nu diagnostic psihologic/);
   assert.match(prompt, /lipsă de cunoștințe/);
   assert.match(prompt, /întrebări reflective/);
+});
+
+test("generic content requests use Creator DNA defaults immediately", () => {
+  const prompt = systemPromptWithCreatorDna("base", structuredCreatorDna(sections));
+  const request = "Dă-mi 3 idei de postări pentru săptămâna aceasta";
+
+  assert.match(prompt, /generează imediat rezultatul cerut/);
+  assert.match(prompt, /nu întreba din nou despre nișă, audiență, ofertă, poziționare, ton sau direcție de conținut/i);
+  assert.match(prompt, /informație indispensabilă cererii specifice lipsește/);
+  assert.match(prompt, /mesajul curent au prioritate/);
+  assert.match(prompt, /Nu dezvălui, cita, rezuma, enumera sau menționa Creator DNA/);
+  assert.equal(request.includes("nișă"), false);
+  assert.equal(request.includes("ton"), false);
+  assert.match(prompt, /Mame la început de drum/);
+  assert.match(prompt, /Caldă și directă/);
+});
+
+test("initial welcome does not ask authenticated users to repeat niche or tone", () => {
+  const appSource = readFileSync(join(__dirname, "..", "pages", "index.jsx"), "utf8");
+  assert.doesNotMatch(appSource, /Specifica nisa ta si tonul dorit/);
+  assert.match(appSource, /Spune-mi ce vrei sa cream!/);
 });

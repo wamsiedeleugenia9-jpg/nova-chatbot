@@ -339,7 +339,7 @@ function ResetPasswordForm({ onDone }) {
 export default function App() {
   const [session, setSession] = useState(undefined); // undefined = se verifica, null = neautentificat
   const [recovering, setRecovering] = useState(false);
-  const [messages, setMessages] = useState([{ role: "assistant", content: "Salut! Sunt EWA AI - asistenta ta AI de marketing digital, creata de EWA.\n\nCu ce incepem azi?\n\nPot genera:\n- Hook-uri virale pentru Reels\n- Scenarii complete Reels\n- Structuri Carusele\n- CTA-uri de engagement si vanzare\n- Captions\n\nSpecifica nisa ta si tonul dorit pentru continut personalizat!" }]);
+  const [messages, setMessages] = useState([{ role: "assistant", content: "Salut! Sunt EWA AI - asistenta ta AI de marketing digital, creata de EWA.\n\nCu ce incepem azi?\n\nPot genera:\n- Hook-uri virale pentru Reels\n- Scenarii complete Reels\n- Structuri Carusele\n- CTA-uri de engagement si vanzare\n- Captions\n\nSpune-mi ce vrei sa cream!" }]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const bottomRef = useRef(null);
