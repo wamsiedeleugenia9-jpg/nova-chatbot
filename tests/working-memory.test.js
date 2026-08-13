@@ -8,6 +8,7 @@ const {
   isNearDuplicate,
   loadWorkingMemory,
   memoryExtractionRequest,
+  normalizeProjectKey,
   saveExtractedMemory,
   systemPromptWithWorkingMemory,
   validateExtraction
@@ -73,6 +74,15 @@ test("malformed structured extraction is rejected strictly", () => {
   assert.equal(validateExtraction("json-ish"), null);
 });
 
+test("project keys normalize to one canonical identifier", () => {
+  assert.equal(normalizeProjectKey("Instagram START Kit"), "instagram_start_kit");
+  assert.equal(normalizeProjectKey("instagram start kit"), "instagram_start_kit");
+  assert.equal(normalizeProjectKey("instagram-start-kit"), "instagram_start_kit");
+  assert.equal(normalizeProjectKey("instagram_start_kit"), "instagram_start_kit");
+  assert.equal(normalizeProjectKey("  Instagram   START---Kit  "), "instagram_start_kit");
+  assert.equal(normalizeProjectKey(null), null);
+});
+
 test("irrelevant conversations produce no memory write", async () => {
   let touched = false;
   const client = { from() { touched = true; } };
@@ -87,11 +97,12 @@ test("useful operational memory is created with authenticated user id", async ()
   let inserted;
   const client = { from(table) { assert.equal(table, "working_memory"); return { async insert(value) { inserted = value; return { error: null }; } }; } };
   const result = await saveExtractedMemory(client, "user-a", {
-    remember: true, category: "content_decision", content: "Hook-ul final pentru Reel este «Claritate». ", project_key: "reel-miercuri", memory_intent: "independent"
+    remember: true, category: "content_decision", content: "Hook-ul final pentru Reel este «Claritate». ", project_key: "Reel Miercuri", memory_intent: "independent"
   });
   assert.equal(result.action, "created");
   assert.equal(inserted.user_id, "user-a");
   assert.equal(inserted.content, "Hook-ul final pentru Reel este «Claritate»." );
+  assert.equal(inserted.project_key, "reel_miercuri");
 });
 
 test("near-identical memories update instead of creating duplicates", async () => {
@@ -122,13 +133,14 @@ test("explicit correction replaces only the prior memory of the same operational
     remember: true,
     category: "temporary_plan",
     content: "Plan săptămânal Instagram revizuit: 3 postări pentru promovarea START Kit.",
-    project_key: "instagram_start_kit",
+    project_key: "Instagram START Kit",
     memory_intent: "replacement"
   }, existing);
 
   assert.deepEqual(result, { action: "replaced", id: "plan" });
   assert.match(updated.content, /3 postări/);
   assert.doesNotMatch(updated.content, /5 postări/);
+  assert.equal(updated.project_key, "instagram_start_kit");
   assert.deepEqual(filters, [["id", "plan"], ["user_id", "user-a"], ["status", "active"]]);
   assert.equal(existing.find(item => item.id === "action").content, "Scrie postarea de luni.");
   assert.equal(existing.find(item => item.id === "hook").content, "Hook final X.");
@@ -145,18 +157,16 @@ test("an independent plan for the same project is not treated as an explicit rep
   assert.equal(inserted.user_id, "user-a");
 });
 
-test("production correction rechecks active rows when the prompt snapshot is empty and updates instead of inserting", async () => {
-  const userMessage = "M-am răzgândit. Schimb planul pentru Instagram START Kit. Nu voi publica 5 postări săptămâna aceasta, ci 2 postări.";
-test("production correction flow overrides an independent model classification and updates the loaded active row", async () => {
-  const userMessage = "M-am răzgândit. Săptămâna aceasta vreau să public 3 postări pe Instagram, nu 5. Promovăm în continuare START Kit.";
+test("production correction rechecks active rows with differently formatted project keys and updates instead of inserting", async () => {
+  const userMessage = "M-am răzgândit. Schimb planul pentru Instagram START Kit. Nu voi publica 4 postări săptămâna aceasta, ci 1 postare.";
   const extractionResponse = {
     content: [{
       type: "text",
       text: JSON.stringify({
         remember: true,
         category: "temporary_plan",
-        content: "Plan săptămânal Instagram: 2 postări pentru promovarea START Kit.",
-        project_key: "instagram_start_kit",
+        content: "Plan săptămânal Instagram: 1 postare pentru promovarea START Kit.",
+        project_key: "Instagram START Kit",
         memory_intent: "independent"
       })
     }]
@@ -180,16 +190,18 @@ test("production correction flow overrides an independent model classification a
     update(value) { update = value; return updateChain; }
   }; } };
 
-  // Mirrors chat.js: parse strict structured text, validate it, then persist it
-  // with both the memories loaded at request start and the latest user message.
   const extractionText = extractionResponse.content?.[0]?.text;
   const extraction = validateExtraction(JSON.parse(extractionText));
   assert.equal(extraction.memory_intent, "independent", "reproduces the model misclassification seen in production");
+  assert.equal(extraction.project_key, "instagram_start_kit");
   const result = await saveExtractedMemory(client, "user-a", extraction, loadedMemories, userMessage);
 
   assert.equal(hasExplicitCorrectionLanguage(userMessage), true);
   assert.deepEqual(result, { action: "replaced", id: "old-plan" });
-  assert.deepEqual(update, { content: "Plan săptămânal Instagram: 2 postări pentru promovarea START Kit." });
+  assert.deepEqual(update, {
+    content: "Plan săptămânal Instagram: 1 postare pentru promovarea START Kit.",
+    project_key: "instagram_start_kit"
+  });
   assert.equal(inserted, false);
   assert.deepEqual(readFilters, [["user_id", "user-a"], ["status", "active"], ["category", "temporary_plan"]]);
   assert.deepEqual(updateFilters, [["id", "old-plan"], ["user_id", "user-a"], ["status", "active"]]);
