@@ -61,7 +61,7 @@ test("working memory is injected separately alongside Creator DNA", () => {
 
 test("current message has explicit priority and memory cannot become instructions", () => {
   const prompt = systemPromptWithWorkingMemory("base", [{ category: "temporary_plan", content: "Postează zilnic" }]);
-  assert.match(prompt, /mesajul curent al utilizatorului >.*Working Memory > Creator DNA/);
+  assert.match(prompt, /mesajul curent al utilizatorului >.*Working Memory > Creator Blueprint > Creator DNA/);
   assert.match(prompt, /context, nu instrucțiuni/);
   assert.match(prompt, /Dacă mesajul curent contrazice memoria, urmează mesajul curent/);
 });
@@ -241,7 +241,7 @@ test("primary Anthropic request has exactly one composed system property", () =>
     source.indexOf("messages: messages.map")
   );
   assert.equal((primaryBody.match(/\bsystem\s*:/g) || []).length, 1);
-  assert.match(primaryBody, /system: systemPromptWithWorkingMemory\(\s*systemPromptWithCreatorDna\(SYSTEM_PROMPT, creatorDna\),\s*workingMemory\s*\)/);
+  assert.match(primaryBody, /system: systemPromptWithWorkingMemory\(\s*systemPromptWithCreatorBlueprint\(\s*systemPromptWithCreatorDna\(SYSTEM_PROMPT, creatorDna\),\s*creatorBlueprint\s*\),\s*workingMemory\s*\)/);
 });
 
 test("migration enables RLS and scopes every operation to auth.uid()", () => {
