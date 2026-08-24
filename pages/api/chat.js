@@ -3,6 +3,7 @@
 // Cheia API nu mai ajunge niciodata in bundle-ul trimis clientului.
 
 import { authenticatedClient } from "../../lib/server/supabase";
+import { loadCreatorBlueprint, systemPromptWithCreatorBlueprint } from "../../lib/chat/creatorBlueprintContext";
 import { loadCreatorDna, systemPromptWithCreatorDna } from "../../lib/chat/creatorDnaContext";
 import {
   loadWorkingMemory,
@@ -85,6 +86,16 @@ export default async function handler(req, res) {
     console.error("Eroare la incarcarea Creator DNA pentru chat:", error);
   }
 
+  // Confirmed Creator Blueprint decisions are a separate strategic layer from
+  // the generated Creator DNA. Loading remains best-effort so chat stays
+  // available during a transient Blueprint persistence failure.
+  let creatorBlueprint = [];
+  try {
+    creatorBlueprint = await loadCreatorBlueprint(auth.client, auth.user.id);
+  } catch (error) {
+    console.error("Eroare la incarcarea Creator Blueprint pentru chat:", error);
+  }
+
   // Working Memory is queried with the authenticated Supabase client. Its RLS
   // token and this server-derived user id provide defense in depth.
   let workingMemory = [];
@@ -138,7 +149,10 @@ export default async function handler(req, res) {
         model: "claude-sonnet-4-6",
         max_tokens: 1000,
         system: systemPromptWithWorkingMemory(
-          systemPromptWithCreatorDna(SYSTEM_PROMPT, creatorDna),
+          systemPromptWithCreatorBlueprint(
+            systemPromptWithCreatorDna(SYSTEM_PROMPT, creatorDna),
+            creatorBlueprint
+          ),
           workingMemory
         ),
         messages: messages.map(m => ({ role: m.role, content: m.content }))
