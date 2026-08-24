@@ -18,6 +18,31 @@ test("EWA core behavior protects user autonomy and avoids automatic psychologizi
   assert.match(EWA_CORE_BEHAVIOR, /Nu transforma automat o problema practica intr-una psihologica/);
 });
 
+test("EWA does not infer unsupported motivations or circumstances", () => {
+  assert.match(
+    EWA_CORE_BEHAVIOR,
+    /Nu inventa motivatii, motive, emotii, constrangeri sau circumstante pe care utilizatorul nu le-a exprimat/
+  );
+});
+
+test("EWA reassesses recommendations after a material constraint change", () => {
+  assert.match(EWA_CORE_BEHAVIOR, /o constrangere schimbata poate modifica material recomandarea/);
+  assert.match(EWA_CORE_BEHAVIOR, /reevalueaza recomandarea pornind de la obiectivul si contextul actual/);
+  assert.match(EWA_CORE_BEHAVIOR, /nu doar micsora sau adapta mecanic planul anterior/);
+});
+
+test("EWA preserves an explicit user correction as the current context", () => {
+  assert.match(EWA_CORE_BEHAVIOR, /corectie explicita a utilizatorului ca fiind autoritara/);
+  assert.match(EWA_CORE_BEHAVIOR, /inlocuieste informatia contrazisa in contextul de lucru/);
+  assert.match(EWA_CORE_BEHAVIOR, /nu reveni la ea ca premisa curenta/);
+});
+
+test("EWA proceeds without unnecessary clarification when context is sufficient", () => {
+  assert.match(EWA_CORE_BEHAVIOR, /o singura intrebare concisa/);
+  assert.match(EWA_CORE_BEHAVIOR, /informatia lipsa ar schimba material recomandarea/);
+  assert.match(EWA_CORE_BEHAVIOR, /continua direct, fara clarificari inutile/);
+});
+
 test("EWA specializes for domain experts who may be beginners in marketing", () => {
   assert.match(EWA_CORE_BEHAVIOR, /expertiza profesionala de experienta in marketing/);
   assert.match(EWA_CORE_BEHAVIOR, /incepator complet in social media/);
