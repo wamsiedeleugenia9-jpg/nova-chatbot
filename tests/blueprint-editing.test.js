@@ -33,10 +33,29 @@ test("editing detects only changed answers and does not rewrite unrelated worksh
   assert.equal(allAnswers[0].raw_answer, "Identitate");
 });
 
+test("Workshop 4 edit changes only price from 150 EUR to 175 EUR", () => {
+  const persisted = [
+    { atelier_number: 4, question_number: 1, raw_answer: "Program de grup" },
+    { atelier_number: 4, question_number: 2, raw_answer: "150 EUR" },
+    { atelier_number: 4, question_number: 3, raw_answer: "6 săptămâni" }
+  ];
+  const submitted = normalizeWorkshopAnswers({ questions: ["Ofertă", "Preț", "Durată"] }, [
+    { questionNumber: 1, answer: "Program de grup" },
+    { questionNumber: 2, answer: "175 EUR" },
+    { questionNumber: 3, answer: "6 săptămâni" }
+  ]);
+
+  assert.deepEqual(changedWorkshopAnswers(persisted, submitted), [
+    { questionNumber: 2, rawAnswer: "175 EUR" }
+  ]);
+});
+
 test("edit API regenerates the affected summary and Creator DNA, while reset requires explicit confirmation", () => {
   const api = readFileSync(join(__dirname, "..", "pages", "api", "blueprint.js"), "utf8");
   assert.match(api, /action === "edit_workshop"/);
   assert.match(api, /action === "save_edit"[\s\S]*sectionSummaryPrompt\(\{ atelier, answers: submitted \}\)/);
+  assert.match(api, /const preparedAnswers = \[\][\s\S]*generateCreatorDna\(latestRecords\)[\s\S]*client\.rpc\("save_blueprint_workshop_edit"/);
+  assert.doesNotMatch(api.match(/action === "save_edit"([\s\S]*?)action === "cancel_edit"/)[1], /from\("blueprint_answers"\)\.upsert/);
   assert.match(api, /records\.blueprint\?\.status === BLUEPRINT_STATUS\.COMPLETED[\s\S]*regenerateCreatorDna/);
   assert.match(api, /action === "reset"[\s\S]*req\.body\?\.confirm !== true/);
   assert.match(api, /\["creator_dna", "blueprint_answers", "blueprint_sections"\]/);

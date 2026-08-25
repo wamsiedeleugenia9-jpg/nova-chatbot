@@ -95,10 +95,15 @@ async function updateSection(client, userId, atelier, values) {
 }
 
 async function regenerateCreatorDna(client, userId, records) {
+  const sections = await generateCreatorDna(records);
+  const saved = await client.from("creator_dna").upsert({ user_id: userId, sections, updated_at: new Date().toISOString() }, { onConflict: "user_id" });
+  if (saved.error) throw saved.error;
+}
+
+async function generateCreatorDna(records) {
   const why = records.answers.find(item => item.atelier_number === 8 && item.question_number === 1)?.raw_answer;
   const generated = await askCreatorDna(creatorDnaPrompt({ sections: records.sections.filter(item => item.atelier_number <= 7), answers: records.answers.filter(item => item.atelier_number <= 7) }));
-  const saved = await client.from("creator_dna").upsert({ user_id: userId, sections: appendWhy(generated, why), updated_at: new Date().toISOString() }, { onConflict: "user_id" });
-  if (saved.error) throw saved.error;
+  return appendWhy(generated, why);
 }
 
 export default async function handler(req, res) {
@@ -131,15 +136,34 @@ export default async function handler(req, res) {
       const submitted = normalizeWorkshopAnswers(atelier, req.body?.answers);
       if (!submitted) return res.status(400).json({ error: "Completează toate răspunsurile atelierului înainte de rezumat." });
       const changed = changedWorkshopAnswers(atelierAnswers, submitted);
+      const preparedAnswers = [];
       for (const item of changed) {
         const interpretation = atelierNumber === 8 ? item.rawAnswer : await askClaude(answerInterpretationPrompt({ question: atelier.questions[item.questionNumber - 1], answer: item.rawAnswer }));
-        const saved = await client.from("blueprint_answers").upsert({ user_id: user.id, atelier_number: atelierNumber, question_number: item.questionNumber, raw_answer: item.rawAnswer, interpreted_answer: interpretation, adjustment_request: null, updated_at: new Date().toISOString() }, { onConflict: "user_id,atelier_number,question_number" });
-        if (saved.error) throw saved.error;
+        preparedAnswers.push({ question_number: item.questionNumber, raw_answer: item.rawAnswer, interpreted_answer: interpretation });
       }
       const summary = atelierNumber === 8
         ? { summary: submitted[0].rawAnswer, keyElements: [] }
         : await askClaude(sectionSummaryPrompt({ atelier, answers: submitted }), true);
-      await updateSection(client, user.id, atelierNumber, { interpreted_summary: summary.summary, key_elements: summary.keyElements, status: SECTION_STATUS.REVIEW, confirmed_at: null });
+      const submittedByQuestion = new Map(submitted.map(item => [item.questionNumber, item.rawAnswer]));
+      const preparedByQuestion = new Map(preparedAnswers.map(item => [item.question_number, item]));
+      const latestRecords = {
+        ...records,
+        answers: records.answers.map(item => item.atelier_number === atelierNumber && submittedByQuestion.has(item.question_number)
+          ? { ...item, raw_answer: submittedByQuestion.get(item.question_number), interpreted_answer: preparedByQuestion.get(item.question_number)?.interpreted_answer || item.interpreted_answer }
+          : item),
+        sections: records.sections.map(item => item.atelier_number === atelierNumber
+          ? { ...item, interpreted_summary: summary.summary, key_elements: summary.keyElements }
+          : item)
+      };
+      const creatorDnaSections = await generateCreatorDna(latestRecords);
+      const saved = await client.rpc("save_blueprint_workshop_edit", {
+        p_atelier_number: atelierNumber,
+        p_answers: preparedAnswers,
+        p_interpreted_summary: summary.summary,
+        p_key_elements: summary.keyElements,
+        p_creator_dna_sections: creatorDnaSections
+      });
+      if (saved.error) throw saved.error;
     } else if (action === "cancel_edit") {
       if (records.blueprint?.status !== BLUEPRINT_STATUS.COMPLETED || section?.status !== SECTION_STATUS.REVIEW) return res.status(409).json({ error: "Nu există un atelier deschis pentru editare." });
       await updateSection(client, user.id, atelierNumber, { status: SECTION_STATUS.COMPLETED });
