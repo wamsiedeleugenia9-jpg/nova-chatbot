@@ -1,5 +1,5 @@
 const CONTENT = require("../../content/creator-blueprint.json");
-const { BLUEPRINT_STATUS, SECTION_STATUS, blueprintState } = require("../../lib/blueprint/state");
+const { BLUEPRINT_STATUS, SECTION_STATUS, blueprintState, changedWorkshopAnswers, normalizeWorkshopAnswers } = require("../../lib/blueprint/state");
 const { answerInterpretationPrompt, creatorDnaPrompt, sectionSummaryPrompt } = require("../../lib/prompts/creatorBlueprint");
 const { summaryFromResponse, summaryRequestOptions } = require("../../lib/blueprint/summaryResponse");
 const { appendWhy, creatorDnaFromResponse, creatorDnaRequestOptions, creatorDnaResponseDiagnostics } = require("../../lib/blueprint/creatorDnaResponse");
@@ -94,6 +94,13 @@ async function updateSection(client, userId, atelier, values) {
   if (result.error) throw result.error;
 }
 
+async function regenerateCreatorDna(client, userId, records) {
+  const why = records.answers.find(item => item.atelier_number === 8 && item.question_number === 1)?.raw_answer;
+  const generated = await askCreatorDna(creatorDnaPrompt({ sections: records.sections.filter(item => item.atelier_number <= 7), answers: records.answers.filter(item => item.atelier_number <= 7) }));
+  const saved = await client.from("creator_dna").upsert({ user_id: userId, sections: appendWhy(generated, why), updated_at: new Date().toISOString() }, { onConflict: "user_id" });
+  if (saved.error) throw saved.error;
+}
+
 export default async function handler(req, res) {
   if (!["GET", "POST"].includes(req.method)) { res.setHeader("Allow", "GET, POST"); return res.status(405).json({ error: "Metoda nu este permisă." }); }
   let auth;
@@ -112,6 +119,30 @@ export default async function handler(req, res) {
     if (action === "start") {
       await updateBlueprint(client, user.id, { status: BLUEPRINT_STATUS.IN_PROGRESS, current_atelier: atelierNumber });
       await updateSection(client, user.id, atelierNumber, { status: SECTION_STATUS.IN_PROGRESS, confirmed_at: null });
+    } else if (action === "edit_workshop") {
+      const selected = Number(req.body?.atelierNumber);
+      if (records.blueprint?.status !== BLUEPRINT_STATUS.COMPLETED || !Number.isInteger(selected) || selected < 1 || selected > 8) return res.status(409).json({ error: "Atelierul nu poate fi editat." });
+      const selectedSection = records.sections.find(item => item.atelier_number === selected);
+      if (selectedSection?.status !== SECTION_STATUS.COMPLETED) return res.status(409).json({ error: "Poți edita doar un atelier confirmat." });
+      await updateBlueprint(client, user.id, { current_atelier: selected });
+      await updateSection(client, user.id, selected, { status: SECTION_STATUS.REVIEW });
+    } else if (action === "save_edit") {
+      if (records.blueprint?.status !== BLUEPRINT_STATUS.COMPLETED || section?.status !== SECTION_STATUS.REVIEW) return res.status(409).json({ error: "Nu există un atelier deschis pentru editare." });
+      const submitted = normalizeWorkshopAnswers(atelier, req.body?.answers);
+      if (!submitted) return res.status(400).json({ error: "Completează toate răspunsurile atelierului înainte de rezumat." });
+      const changed = changedWorkshopAnswers(atelierAnswers, submitted);
+      for (const item of changed) {
+        const interpretation = atelierNumber === 8 ? item.rawAnswer : await askClaude(answerInterpretationPrompt({ question: atelier.questions[item.questionNumber - 1], answer: item.rawAnswer }));
+        const saved = await client.from("blueprint_answers").upsert({ user_id: user.id, atelier_number: atelierNumber, question_number: item.questionNumber, raw_answer: item.rawAnswer, interpreted_answer: interpretation, adjustment_request: null, updated_at: new Date().toISOString() }, { onConflict: "user_id,atelier_number,question_number" });
+        if (saved.error) throw saved.error;
+      }
+      const summary = atelierNumber === 8
+        ? { summary: submitted[0].rawAnswer, keyElements: [] }
+        : await askClaude(sectionSummaryPrompt({ atelier, answers: submitted }), true);
+      await updateSection(client, user.id, atelierNumber, { interpreted_summary: summary.summary, key_elements: summary.keyElements, status: SECTION_STATUS.REVIEW, confirmed_at: null });
+    } else if (action === "cancel_edit") {
+      if (records.blueprint?.status !== BLUEPRINT_STATUS.COMPLETED || section?.status !== SECTION_STATUS.REVIEW) return res.status(409).json({ error: "Nu există un atelier deschis pentru editare." });
+      await updateSection(client, user.id, atelierNumber, { status: SECTION_STATUS.COMPLETED });
     } else if (action === "submit") {
       const answer = typeof req.body?.answer === "string" ? req.body.answer.trim() : "";
       const questionNumber = Number(req.body?.questionNumber);
@@ -152,6 +183,10 @@ export default async function handler(req, res) {
       if (!section?.interpreted_summary) return res.status(409).json({ error: "Nu există un rezumat de confirmat." });
       const confirmedAt = new Date().toISOString();
       await updateSection(client, user.id, atelierNumber, { status: SECTION_STATUS.COMPLETED, confirmed_at: confirmedAt });
+      if (records.blueprint?.status === BLUEPRINT_STATUS.COMPLETED) {
+        records = await load(client, user.id);
+        await regenerateCreatorDna(client, user.id, records);
+      }
     } else if (action === "continue") {
       if (section?.status !== SECTION_STATUS.COMPLETED || atelierNumber >= 8) return res.status(409).json({ error: "Atelierul curent trebuie confirmat mai întâi." });
       await updateBlueprint(client, user.id, { current_atelier: atelierNumber + 1, status: BLUEPRINT_STATUS.IN_PROGRESS });
@@ -163,13 +198,16 @@ export default async function handler(req, res) {
     } else if (action === "generate_dna") {
       const allConfirmed = records.sections.filter(item => item.atelier_number >= 1 && item.atelier_number <= 8 && item.status === SECTION_STATUS.COMPLETED).length === 8;
       if (!allConfirmed) return res.status(409).json({ error: "Confirmă toate cele 8 ateliere înainte de a genera Creator DNA." });
-      if (!records.creatorDna) {
-        const why = records.answers.find(item => item.atelier_number === 8 && item.question_number === 1)?.raw_answer;
-        const generated = await askCreatorDna(creatorDnaPrompt({ sections: records.sections.filter(item => item.atelier_number <= 7), answers: records.answers.filter(item => item.atelier_number <= 7) }));
-        const saved = await client.from("creator_dna").upsert({ user_id: user.id, sections: appendWhy(generated, why), updated_at: new Date().toISOString() }, { onConflict: "user_id" });
-        if (saved.error) throw saved.error;
-      }
+      if (!records.creatorDna) await regenerateCreatorDna(client, user.id, records);
       await updateBlueprint(client, user.id, { current_atelier: 8, status: BLUEPRINT_STATUS.COMPLETED, completed_at: records.blueprint?.completed_at || new Date().toISOString() });
+    } else if (action === "reset") {
+      if (req.body?.confirm !== true) return res.status(400).json({ error: "Confirmă explicit că vrei să începi un Blueprint nou." });
+      for (const table of ["creator_dna", "blueprint_answers", "blueprint_sections"]) {
+        const removed = await client.from(table).delete().eq("user_id", user.id);
+        if (removed.error) throw removed.error;
+      }
+      await updateBlueprint(client, user.id, { current_atelier: 1, status: BLUEPRINT_STATUS.NOT_STARTED, completed_at: null });
+      records = await ensure(client, user.id, await load(client, user.id));
     } else return res.status(400).json({ error: "Acțiune necunoscută." });
 
     records = await load(client, user.id);
