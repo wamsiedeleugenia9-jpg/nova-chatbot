@@ -27,11 +27,34 @@ Supabase Auth este arhitectura curenta de autentificare.
 
 Sesiunea utilizatorului protejeaza functionalitatile asociate contului, iar datele Creator Blueprint sunt asociate utilizatorului autentificat.
 
+### Acces owner/admin
+
+Rolurile privilegiate sunt pastrate in `public.user_roles`, nu in date trimise de
+browser sau in metadata modificabila de utilizator. Aplicati migrarea
+`supabase/migrations/20260825010000_create_user_roles.sql`, apoi identificati
+contul owner in **Supabase Dashboard > Authentication > Users**. Din SQL Editor,
+inlocuiti parametrul de mai jos cu UUID-ul copiat din Dashboard si executati o
+singura data:
+
+```sql
+insert into public.user_roles (user_id, role)
+values ('OWNER_AUTH_USER_UUID'::uuid, 'admin')
+on conflict (user_id) do update set role = excluded.role;
+```
+
+Nu rulati aceasta instructiune din browser si nu folositi cheia `service_role` in
+aplicatie. Utilizatorii fara rand sau cu rolul `user` raman utilizatori normali.
+Helper-ele server-side din `lib/server/access.js` citesc rolul prin sesiunea
+Supabase verificata. `authorizeFeature` acorda adminului acces direct, fara a
+apela verificarea de abonament; pentru ceilalti utilizatori apeleaza evaluatorul
+de entitlements primit. Orice viitor gate de plan/Stripe trebuie sa foloseasca
+acest helper, iar rutele exclusiv administrative pot folosi `requireAdmin`.
+
 ## Creator Blueprint
 
 Creator Blueprint Phase 3 contine Atelierele 1–7.
 
-Atelierul 8, Creator DNA, apartine Phase 4 si nu este implementat inca.
+Atelierul 8 si generarea Creator DNA sunt implementate.
 
 Ruta protejata `/blueprint` foloseste tabelele:
 
@@ -87,4 +110,4 @@ npm run build
 
 Creator Blueprint Phase 3 este implementat pentru Atelierele 1–7.
 
-Creator DNA, Dashboard-ul si abonamentul Stripe apartin etapelor urmatoare ale EWA MVP.
+Dashboard-ul si abonamentul Stripe apartin etapelor urmatoare ale EWA MVP.
