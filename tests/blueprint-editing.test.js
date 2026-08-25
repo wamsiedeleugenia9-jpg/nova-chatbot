@@ -59,6 +59,7 @@ test("edit API regenerates the affected summary and Creator DNA, while reset req
   assert.match(api, /records\.blueprint\?\.status === BLUEPRINT_STATUS\.COMPLETED[\s\S]*regenerateCreatorDna/);
   assert.match(api, /action === "reset"[\s\S]*req\.body\?\.confirm !== true/);
   assert.match(api, /\["creator_dna", "blueprint_answers", "blueprint_sections"\]/);
+  assert.match(api, /if \(json\) return summaryWithRetry\(request/);
 });
 
 test("edit UI exposes all workshop choices and an independently confirmed reset", () => {
