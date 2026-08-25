@@ -1,12 +1,18 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { SUMMARY_TOOL_NAME, summaryFromResponse, summaryRequestOptions, summaryResponseDiagnostics } = require("../lib/blueprint/summaryResponse");
+const { SUMMARY_TOKEN_BUDGETS, SUMMARY_TOOL_NAME, summaryFromResponse, summaryRequestOptions, summaryResponseDiagnostics, summaryWithRetry } = require("../lib/blueprint/summaryResponse");
 
 test("summary requests force schema-backed tool output instead of JSON text", () => {
   const options = summaryRequestOptions();
   assert.deepEqual(options.tool_choice, { type: "tool", name: SUMMARY_TOOL_NAME });
   assert.deepEqual(options.tools[0].input_schema.required, ["summary", "keyElements"]);
   assert.equal(options.tools[0].input_schema.additionalProperties, false);
+  assert.equal(options.tools[0].input_schema.properties.keyElements.maxItems, 8);
+  assert.equal(options.tools[0].input_schema.properties.keyElements.items.maxLength, 240);
+});
+
+test("structured summaries use a larger retry budget", () => {
+  assert.deepEqual(SUMMARY_TOKEN_BUDGETS, [1600, 2600]);
 });
 
 test("malformed model JSON text cannot break a valid structured summary", () => {
@@ -59,6 +65,44 @@ test("structured summary failures identify the exact safe diagnostic category", 
   );
   assert.throws(
     () => summaryFromResponse([{ type: "tool_use", name: SUMMARY_TOOL_NAME, input: { summary: "Rezumat", keyElements: [""] } }]),
+    error => error.reason === "invalid_keyElements"
+  );
+});
+
+test("max_tokens is rejected explicitly as truncation before incomplete keyElements validation", () => {
+  assert.throws(
+    () => summaryFromResponse({
+      stop_reason: "max_tokens",
+      content: [{ type: "tool_use", name: SUMMARY_TOOL_NAME, input: { summary: "Rezumat", keyElements: ["element", ""] } }]
+    }),
+    error => error.code === "INVALID_SUMMARY_RESPONSE" && error.reason === "truncated_structured_response"
+  );
+});
+
+test("truncated structured output retries once with the larger budget and accepts a complete response", async () => {
+  const budgets = [];
+  const diagnostics = [];
+  const responses = [
+    { stop_reason: "max_tokens", content: [{ type: "tool_use", name: SUMMARY_TOOL_NAME, input: { summary: "Preț actualizat", keyElements: ["preț ales:"] } }] },
+    { stop_reason: "tool_use", content: [{ type: "tool_use", name: SUMMARY_TOOL_NAME, input: { summary: "Prețul ales a fost actualizat de la 150 EUR la 175 EUR.", keyElements: ["preț anterior: 150 EUR", "preț ales: 175 EUR", "alegerea nu validează piața"] } }] }
+  ];
+
+  const result = await summaryWithRetry(async budget => {
+    budgets.push(budget);
+    return responses.shift();
+  }, item => diagnostics.push(item));
+
+  assert.deepEqual(budgets, [1600, 2600]);
+  assert.equal(diagnostics[0].reason, "truncated_structured_response");
+  assert.deepEqual(result, {
+    summary: "Prețul ales a fost actualizat de la 150 EUR la 175 EUR.",
+    keyElements: ["preț anterior: 150 EUR", "preț ales: 175 EUR", "alegerea nu validează piața"]
+  });
+});
+
+test("overlong structured keyElements remain rejected", () => {
+  assert.throws(
+    () => summaryFromResponse([{ type: "tool_use", name: SUMMARY_TOOL_NAME, input: { summary: "Rezumat", keyElements: Array(9).fill("element") } }]),
     error => error.reason === "invalid_keyElements"
   );
 });
