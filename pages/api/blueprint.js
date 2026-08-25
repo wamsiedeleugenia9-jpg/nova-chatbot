@@ -1,7 +1,7 @@
 const CONTENT = require("../../content/creator-blueprint.json");
 const { BLUEPRINT_STATUS, SECTION_STATUS, blueprintState, changedWorkshopAnswers, normalizeWorkshopAnswers } = require("../../lib/blueprint/state");
 const { answerInterpretationPrompt, creatorDnaPrompt, sectionSummaryPrompt } = require("../../lib/prompts/creatorBlueprint");
-const { summaryFromResponse, summaryRequestOptions } = require("../../lib/blueprint/summaryResponse");
+const { summaryFromResponse, summaryRequestOptions, summaryResponseDiagnostics } = require("../../lib/blueprint/summaryResponse");
 const { appendWhy, creatorDnaFromResponse, creatorDnaRequestOptions, creatorDnaResponseDiagnostics } = require("../../lib/blueprint/creatorDnaResponse");
 const { authenticatedClient } = require("../../lib/server/supabase");
 
@@ -16,23 +16,35 @@ function persistenceErrorMessage(method) {
 
 async function askClaude(prompt, json = false) {
   if (!process.env.ANTHROPIC_API_KEY) throw new Error("Anthropic server configuration is missing");
-  const response = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "x-api-key": process.env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01" },
-    body: JSON.stringify({
-      model: "claude-sonnet-4-6",
-      max_tokens: 900,
-      system: prompt.system,
-      messages: [{ role: "user", content: prompt.message }],
-      ...(json ? summaryRequestOptions() : {})
-    })
-  });
-  if (!response.ok) { console.error("Blueprint Anthropic error:", response.status, await response.text()); throw new Error("Anthropic request failed"); }
-  const content = (await response.json()).content;
-  if (json) return summaryFromResponse(content);
-  const text = content?.find(item => item.type === "text")?.text?.trim();
-  if (!text) throw new Error("Anthropic returned empty content");
-  return text;
+  const attempts = json ? 2 : 1;
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-api-key": process.env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-6",
+        max_tokens: 900,
+        system: prompt.system,
+        messages: [{ role: "user", content: prompt.message }],
+        ...(json ? summaryRequestOptions() : {})
+      })
+    });
+    if (!response.ok) { console.error("Blueprint Anthropic error:", response.status, await response.text()); throw new Error("Anthropic request failed"); }
+    const payload = await response.json();
+    if (!json) {
+      const text = payload.content?.find(item => item.type === "text")?.text?.trim();
+      if (!text) throw new Error("Anthropic returned empty content");
+      return text;
+    }
+    try {
+      return summaryFromResponse(payload);
+    } catch (error) {
+      if (error.code !== "INVALID_SUMMARY_RESPONSE") throw error;
+      // Structure only: never log the generated summary or workshop answers.
+      console.error("Blueprint summary response rejected:", { attempt, ...summaryResponseDiagnostics(payload), reason: error.reason });
+      if (attempt === attempts) throw error;
+    }
+  }
 }
 
 async function askCreatorDna(prompt) {

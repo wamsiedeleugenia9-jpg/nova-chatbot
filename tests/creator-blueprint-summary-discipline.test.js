@@ -51,6 +51,6 @@ test("all eight workshops still compose section summary prompts", () => {
   for (const atelier of CONTENT.ateliers) {
     const prompt = sectionSummaryPrompt({ atelier, answers: [{ questionNumber: 1, rawAnswer: "Text" }] });
     assert.match(prompt.system, new RegExp(atelier.summaryInstruction.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
-    assert.match(prompt.system, /Returnează strict JSON valid/);
+    assert.match(prompt.system, /exclusiv prin instrumentul structurat/);
   }
 });
