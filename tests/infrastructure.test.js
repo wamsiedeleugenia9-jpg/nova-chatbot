@@ -11,7 +11,7 @@ test("Blueprint prompts support per-answer interpretation and section adjustment
   assert.match(initial.message, /Povestea mea/);
   const adjusted = sectionSummaryPrompt({ atelier: { number: 1, title: "Tu", summaryInstruction: "Scurt." }, answers: [{ questionNumber: 1, rawAnswer: "Povestea" }], currentSummary: "Interpretarea", adjustment: "Mai direct" });
   assert.match(adjusted.message, /Mai direct/);
-  assert.match(adjusted.system, /JSON valid/);
+  assert.match(adjusted.system, /instrumentul structurat/);
 });
 
 test("protected APIs require a correctly formed bearer token", () => {
