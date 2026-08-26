@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { supabase } from "../lib/supabaseClient";
 
+const WELCOME_MESSAGE = { role: "assistant", content: "Salut! Sunt EWA AI - asistenta ta AI de marketing digital, creata de EWA.\n\nCu ce incepem azi?\n\nPot genera:\n- Hook-uri virale pentru Reels\n- Scenarii complete Reels\n- Structuri Carusele\n- CTA-uri de engagement si vanzare\n- Captions\n\nSpune-mi ce vrei sa cream!" };
+
 // SYSTEM_PROMPT a fost mutat exclusiv server-side, in pages/api/chat.js.
 // Frontend-ul nu mai contine niciun prompt, nicio cheie API.
 
@@ -339,10 +341,13 @@ function ResetPasswordForm({ onDone }) {
 export default function App() {
   const [session, setSession] = useState(undefined); // undefined = se verifica, null = neautentificat
   const [recovering, setRecovering] = useState(false);
-  const [messages, setMessages] = useState([{ role: "assistant", content: "Salut! Sunt EWA AI - asistenta ta AI de marketing digital, creata de EWA.\n\nCu ce incepem azi?\n\nPot genera:\n- Hook-uri virale pentru Reels\n- Scenarii complete Reels\n- Structuri Carusele\n- CTA-uri de engagement si vanzare\n- Captions\n\nSpune-mi ce vrei sa cream!" }]);
+  const [messages, setMessages] = useState([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyError, setHistoryError] = useState("");
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const bottomRef = useRef(null);
+  const sessionUserRef = useRef(null);
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, loading]);
 
@@ -361,12 +366,50 @@ export default function App() {
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
     const { data: listener } = supabase.auth.onAuthStateChange((event, newSession) => {
       if (event === "PASSWORD_RECOVERY") setRecovering(true);
+      const nextUserId = newSession?.user?.id || null;
+      if (sessionUserRef.current !== nextUserId) {
+        setMessages([]);
+        setHistoryError("");
+      }
+      sessionUserRef.current = nextUserId;
       setSession(newSession);
     });
     return () => listener.subscription.unsubscribe();
   }, []);
 
+  useEffect(() => {
+    if (!session?.user?.id) return;
+    sessionUserRef.current = session.user.id;
+    let active = true;
+    setMessages([]);
+    setHistoryError("");
+    setHistoryLoading(true);
+
+    async function restoreHistory() {
+      try {
+        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+        const accessToken = sessionData.session?.access_token;
+        if (sessionError || !accessToken) throw new Error("Missing session");
+        const response = await fetch("/api/chat", {
+          headers: { "Authorization": `Bearer ${accessToken}` }
+        });
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.error || "History request failed");
+        if (active) setMessages(payload.messages.length ? payload.messages : [WELCOME_MESSAGE]);
+      } catch {
+        if (active) setHistoryError("Nu am putut incarca istoricul conversatiei. Reincarca pagina si incearca din nou.");
+      } finally {
+        if (active) setHistoryLoading(false);
+      }
+    }
+
+    restoreHistory();
+    return () => { active = false; };
+  }, [session?.user?.id]);
+
   async function signOut() {
+    setMessages([]);
+    setHistoryError("");
     await supabase.auth.signOut();
   }
 
@@ -407,7 +450,7 @@ export default function App() {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${accessToken}`
         },
-        body: JSON.stringify({ messages: newMsgs.map(m => ({ role: m.role, content: m.content })) })
+        body: JSON.stringify({ message: msg })
       });
       const data = await res.json();
       if (!res.ok) {
@@ -435,15 +478,17 @@ export default function App() {
           </button>
         </div>
         <div style={{ height: 450, overflowY: "auto", padding: "16px 16px 8px" }}>
-          {messages.map((m, i) => <Message key={i} msg={m} />)}
+          {historyLoading && <div style={{ color: "#a78bfa", fontSize: 13, textAlign: "center", padding: 16 }}>Se incarca istoricul...</div>}
+          {historyError && <div style={{ color: "#f87171", fontSize: 13, textAlign: "center", padding: 16 }}>{historyError}</div>}
+          {!historyLoading && messages.map((m, i) => <Message key={i} msg={m} />)}
           {loading && <div style={{ display: "flex", gap: 10, marginBottom: 14, alignItems: "flex-end" }}><div style={{ width: 34, height: 34, borderRadius: "50%", overflow: "hidden" }}><img src="https://i.imgur.com/UUrViWA.jpeg" alt="EWA AI" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top" }} /></div><div style={{ background: "rgba(255,255,255,0.06)", borderRadius: "20px 20px 20px 4px", border: "1px solid rgba(167,139,250,0.2)" }}><TypingDots /></div></div>}
           <div ref={bottomRef} />
         </div>
         <div style={{ padding: "10px 16px 18px", borderTop: "1px solid rgba(255,255,255,0.05)" }}>
           <a href="/blueprint" style={{ display: "block", textAlign: "center", color: "#c4b5fd", fontSize: 13, marginBottom: 10 }}>Deschide Creator Blueprint →</a>
           <div style={{ display: "flex", gap: 10, alignItems: "flex-end", background: "rgba(255,255,255,0.05)", borderRadius: 18, border: "1px solid rgba(167,139,250,0.25)", padding: "10px 14px" }}>
-            <textarea rows={1} value={input} onChange={e => { setInput(e.target.value); e.target.style.height = "auto"; e.target.style.height = Math.min(e.target.scrollHeight, 100) + "px"; }} onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }} placeholder="Cere hook-uri, CTA-uri, scenarii..." style={{ flex: 1, background: "transparent", border: "none", color: "#f1f5f9", fontSize: 14, lineHeight: 1.6, maxHeight: 100, overflowY: "auto" }} />
-            <button onClick={() => send()} disabled={!input.trim() || loading} style={{ width: 38, height: 38, borderRadius: "50%", border: "none", background: input.trim() && !loading ? "linear-gradient(135deg, #6d28d9, #db2777)" : "rgba(255,255,255,0.08)", color: input.trim() && !loading ? "#fff" : "#475569", cursor: input.trim() && !loading ? "pointer" : "not-allowed", fontSize: 16, display: "flex", alignItems: "center", justifyContent: "center" }}>➤</button>
+            <textarea rows={1} value={input} disabled={historyLoading || !!historyError} onChange={e => { setInput(e.target.value); e.target.style.height = "auto"; e.target.style.height = Math.min(e.target.scrollHeight, 100) + "px"; }} onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }} placeholder="Cere hook-uri, CTA-uri, scenarii..." style={{ flex: 1, background: "transparent", border: "none", color: "#f1f5f9", fontSize: 14, lineHeight: 1.6, maxHeight: 100, overflowY: "auto" }} />
+            <button onClick={() => send()} disabled={!input.trim() || loading || historyLoading || !!historyError} style={{ width: 38, height: 38, borderRadius: "50%", border: "none", background: input.trim() && !loading && !historyLoading && !historyError ? "linear-gradient(135deg, #6d28d9, #db2777)" : "rgba(255,255,255,0.08)", color: input.trim() && !loading && !historyLoading && !historyError ? "#fff" : "#475569", cursor: input.trim() && !loading && !historyLoading && !historyError ? "pointer" : "not-allowed", fontSize: 16, display: "flex", alignItems: "center", justifyContent: "center" }}>➤</button>
           </div>
         </div>
       </div>
