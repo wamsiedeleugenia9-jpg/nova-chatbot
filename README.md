@@ -73,6 +73,15 @@ Inainte de utilizare, aplicati migratiile Blueprint in aceasta ordine:
 
 Continutul Creator Blueprint este pastrat in `content/creator-blueprint.json`.
 
+## Istoric EWA web
+
+Conversatia EWA din versiunea web este pastrata in Supabase, cate una pentru
+fiecare utilizator autentificat. Aplicati migratia
+`supabase/migrations/20260826000000_create_ewa_chat_history.sql` inainte de
+publicarea codului care restaureaza istoricul. Tabelele `ewa_conversations` si
+`ewa_messages` sunt protejate prin RLS si nu acorda administratorilor acces la
+conversatiile altor utilizatori.
+
 ## Structura proiectului
 
 ```text
