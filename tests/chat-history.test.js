@@ -105,3 +105,10 @@ test("web API loads canonical history and accepts only the latest client message
   assert.match(page, /payload\.messages\.length \? payload\.messages : \[WELCOME_MESSAGE\]/);
   assert.match(page, /setMessages\(\[\]\);[\s\S]*await supabase\.auth\.signOut\(\)/);
 });
+
+test("system prompt treats supplied persisted history as private conversational continuity", () => {
+  const api = readFileSync(join(__dirname, "..", "pages", "api", "chat.js"), "utf8");
+  assert.match(api, /istoricul persistent din sesiunile autentificate anterioare ale aceluiasi utilizator/);
+  assert.match(api, /nu sustine ca nu ai acces la o sesiune anterioara cand raspunsul exista in context/);
+  assert.match(api, /Nu pretinde ca iti amintesti informatii absente[\s\S]*nu sugera niciodata acces la conversatiile altui utilizator/);
+});
