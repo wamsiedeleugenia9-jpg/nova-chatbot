@@ -24,6 +24,7 @@ test("authenticated non-entitled users skip history and return the paywall state
   assert.deepEqual(requests, ["/api/access-status"]);
   assert.deepEqual(result, { access: { entitled: false, admin: false }, messages: null });
   assert.match(page, /if \(!result\.access\.entitled\) \{[\s\S]*setHistoryError\(""\)/);
+  assert.match(page, /setHistoryError\(""\);[\s\S]*setInitializationError\(""\);[\s\S]*setAccessStatus\(null\);[\s\S]*setHistoryLoading\(true\)/);
   assert.match(page, /accessStatus && !accessStatus\.entitled[\s\S]*EWA AI Founder[\s\S]*€17\/month[\s\S]*Devino Founder/);
   assert.match(page, /if \(!msg \|\| loading \|\| !accessStatus\?\.entitled\) return;/);
   assert.match(page, /placeholder=\{accessStatus\?\.entitled \? "Cere hook-uri, CTA-uri, scenarii\.\.\." : "Abonament Founder necesar"\}/);
@@ -55,7 +56,24 @@ test("a genuine history failure for an entitled user remains an error", async ()
     }),
     /database_unavailable/
   );
-  assert.match(page, /if \(isCurrentRequest\(\)\) setHistoryError\("Nu am putut incarca istoricul conversatiei/);
+  assert.match(page, /if \(error\.stage === "history"\) \{[\s\S]*setHistoryError\("Nu am putut incarca istoricul conversatiei/);
+});
+
+test("access-status failures cannot be mislabeled as history failures", async () => {
+  const requests = [];
+  await assert.rejects(
+    restoreChatHistory({
+      accessToken: "token",
+      fetchImpl: async url => {
+        requests.push(url);
+        return response(false, { error: "access_status_failed" });
+      }
+    }),
+    error => error.message === "access_status_failed" && error.stage === "access"
+  );
+
+  assert.deepEqual(requests, ["/api/access-status"]);
+  assert.match(page, /if \(error\.stage === "history"\)[\s\S]*else \{[\s\S]*setInitializationError/);
 });
 
 test("admin bypass receives the same normal history path", async () => {
