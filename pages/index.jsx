@@ -348,6 +348,7 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [checkoutError, setCheckoutError] = useState("");
+  const [accessStatus, setAccessStatus] = useState(null);
   const bottomRef = useRef(null);
   const sessionUserRef = useRef(null);
 
@@ -372,6 +373,7 @@ export default function App() {
       if (sessionUserRef.current !== nextUserId) {
         setMessages([]);
         setHistoryError("");
+        setAccessStatus(null);
       }
       sessionUserRef.current = nextUserId;
       setSession(newSession);
@@ -392,11 +394,15 @@ export default function App() {
         const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
         const accessToken = sessionData.session?.access_token;
         if (sessionError || !accessToken) throw new Error("Missing session");
-        const response = await fetch("/api/chat", {
-          headers: { "Authorization": `Bearer ${accessToken}` }
-        });
-        const payload = await response.json();
+        const headers = { "Authorization": `Bearer ${accessToken}` };
+        const [response, accessResponse] = await Promise.all([
+          fetch("/api/chat", { headers }),
+          fetch("/api/access-status", { headers })
+        ]);
+        const [payload, accessPayload] = await Promise.all([response.json(), accessResponse.json()]);
         if (!response.ok) throw new Error(payload.error || "History request failed");
+        if (!accessResponse.ok) throw new Error(accessPayload.error || "Access request failed");
+        if (active) setAccessStatus(accessPayload);
         if (active) setMessages(payload.messages.length ? payload.messages : [WELCOME_MESSAGE]);
       } catch {
         if (active) setHistoryError("Nu am putut incarca istoricul conversatiei. Reincarca pagina si incearca din nou.");
@@ -452,7 +458,7 @@ export default function App() {
 
   async function send(text) {
     const msg = text || input.trim();
-    if (!msg || loading) return;
+    if (!msg || loading || !accessStatus?.entitled) return;
     const newMsgs = [...messages, { role: "user", content: msg }];
     setMessages(newMsgs);
     setInput("");
@@ -508,7 +514,7 @@ export default function App() {
           <div ref={bottomRef} />
         </div>
         <div style={{ padding: "10px 16px 18px", borderTop: "1px solid rgba(255,255,255,0.05)" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 10, padding: "10px 12px", borderRadius: 14, background: "linear-gradient(135deg, rgba(109,40,217,0.16), rgba(219,39,119,0.12))", border: "1px solid rgba(167,139,250,0.22)" }}>
+          {accessStatus && !accessStatus.entitled && <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 10, padding: "10px 12px", borderRadius: 14, background: "linear-gradient(135deg, rgba(109,40,217,0.16), rgba(219,39,119,0.12))", border: "1px solid rgba(167,139,250,0.22)" }}>
             <div>
               <div style={{ color: "#f8fafc", fontSize: 13, fontWeight: 700 }}>EWA AI Founder</div>
               <div style={{ color: "#c4b5fd", fontSize: 12 }}>€17/month</div>
@@ -517,11 +523,17 @@ export default function App() {
               {checkoutLoading ? "Se deschide..." : "Devino Founder"}
             </button>
           </div>
+          }
+          {accessStatus && !accessStatus.entitled && <div role="status" style={{ color: "#c4b5fd", fontSize: 12, textAlign: "center", marginBottom: 8 }}>
+            {typeof window !== "undefined" && new URLSearchParams(window.location.search).get("checkout") === "success"
+              ? "Plata este in curs de confirmare. Accesul se activeaza dupa confirmarea Stripe."
+              : "Accesul necesita un abonament EWA AI Founder activ."}
+          </div>}
           {checkoutError && <div role="alert" style={{ color: "#f87171", fontSize: 12, textAlign: "center", marginBottom: 8 }}>{checkoutError}</div>}
           <a href="/blueprint" style={{ display: "block", textAlign: "center", color: "#c4b5fd", fontSize: 13, marginBottom: 10 }}>Deschide Creator Blueprint →</a>
           <div style={{ display: "flex", gap: 10, alignItems: "flex-end", background: "rgba(255,255,255,0.05)", borderRadius: 18, border: "1px solid rgba(167,139,250,0.25)", padding: "10px 14px" }}>
-            <textarea rows={1} value={input} disabled={historyLoading || !!historyError} onChange={e => { setInput(e.target.value); e.target.style.height = "auto"; e.target.style.height = Math.min(e.target.scrollHeight, 100) + "px"; }} onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }} placeholder="Cere hook-uri, CTA-uri, scenarii..." style={{ flex: 1, background: "transparent", border: "none", color: "#f1f5f9", fontSize: 14, lineHeight: 1.6, maxHeight: 100, overflowY: "auto" }} />
-            <button onClick={() => send()} disabled={!input.trim() || loading || historyLoading || !!historyError} style={{ width: 38, height: 38, borderRadius: "50%", border: "none", background: input.trim() && !loading && !historyLoading && !historyError ? "linear-gradient(135deg, #6d28d9, #db2777)" : "rgba(255,255,255,0.08)", color: input.trim() && !loading && !historyLoading && !historyError ? "#fff" : "#475569", cursor: input.trim() && !loading && !historyLoading && !historyError ? "pointer" : "not-allowed", fontSize: 16, display: "flex", alignItems: "center", justifyContent: "center" }}>➤</button>
+            <textarea rows={1} value={input} disabled={historyLoading || !!historyError || !accessStatus?.entitled} onChange={e => { setInput(e.target.value); e.target.style.height = "auto"; e.target.style.height = Math.min(e.target.scrollHeight, 100) + "px"; }} onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }} placeholder={accessStatus?.entitled ? "Cere hook-uri, CTA-uri, scenarii..." : "Abonament Founder necesar"} style={{ flex: 1, background: "transparent", border: "none", color: "#f1f5f9", fontSize: 14, lineHeight: 1.6, maxHeight: 100, overflowY: "auto" }} />
+            <button onClick={() => send()} disabled={!input.trim() || loading || historyLoading || !!historyError || !accessStatus?.entitled} style={{ width: 38, height: 38, borderRadius: "50%", border: "none", background: input.trim() && !loading && !historyLoading && !historyError && accessStatus?.entitled ? "linear-gradient(135deg, #6d28d9, #db2777)" : "rgba(255,255,255,0.08)", color: input.trim() && !loading && !historyLoading && !historyError && accessStatus?.entitled ? "#fff" : "#475569", cursor: input.trim() && !loading && !historyLoading && !historyError && accessStatus?.entitled ? "pointer" : "not-allowed", fontSize: 16, display: "flex", alignItems: "center", justifyContent: "center" }}>➤</button>
           </div>
         </div>
       </div>
