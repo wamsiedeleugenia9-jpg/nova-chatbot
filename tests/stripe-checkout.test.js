@@ -10,23 +10,44 @@ const stripeHelper = readFileSync(join(root, "lib/server/stripe.js"), "utf8");
 const route = readFileSync(join(root, "pages/api/stripe/checkout.js"), "utf8");
 
 function loadCheckoutHelper() {
-  const originalLoad = Module._load;
-  Module._load = function load(request, parent, isMain) {
-    if (request === "server-only") return {};
-    return originalLoad.call(this, request, parent, isMain);
-  };
   const path = require.resolve("../lib/server/checkout");
   delete require.cache[path];
-  const helper = require(path);
-  Module._load = originalLoad;
-  return helper;
+  return require(path);
 }
 
 test("Stripe client and Checkout configuration stay server-only", () => {
-  assert.match(stripeHelper, /^require\("server-only"\);/);
-  assert.match(checkoutHelper, /^require\("server-only"\);/);
+  assert.doesNotMatch(stripeHelper, /require\(["']server-only["']\)/);
+  assert.doesNotMatch(checkoutHelper, /require\(["']server-only["']\)/);
+  assert.match(stripeHelper, /typeof window !== "undefined"/);
+  assert.match(checkoutHelper, /typeof window !== "undefined"/);
   assert.match(stripeHelper, /process\.env\.STRIPE_SECRET_KEY/);
   assert.doesNotMatch(stripeHelper + checkoutHelper + route, /NEXT_PUBLIC_STRIPE|SUPABASE_SERVICE_ROLE_KEY/);
+});
+
+test("complete Pages Router Checkout dependency chain loads without server-only", async () => {
+  const { loadBindings, transform } = require("next/dist/build/swc");
+  await loadBindings();
+  const transformed = await transform(route, {
+    filename: join(root, "pages/api/stripe/checkout.js"),
+    jsc: { parser: { syntax: "ecmascript" }, target: "es2020" },
+    module: { type: "commonjs" }
+  });
+  const routePath = join(root, "pages/api/stripe/checkout.js");
+  const compiledRoute = new Module(routePath, module);
+  compiledRoute.filename = routePath;
+  compiledRoute.paths = Module._nodeModulePaths(join(root, "pages/api/stripe"));
+
+  const originalLoad = Module._load;
+  Module._load = function rejectServerOnly(request, parent, isMain) {
+    if (request === "server-only") throw new Error("server-only entered the Checkout runtime chain");
+    return originalLoad.call(this, request, parent, isMain);
+  };
+  try {
+    compiledRoute._compile(transformed.code, routePath);
+    assert.equal(typeof compiledRoute.exports.default, "function");
+  } finally {
+    Module._load = originalLoad;
+  }
 });
 
 test("Checkout endpoint requires Supabase authentication and POST", () => {
