@@ -345,6 +345,7 @@ export default function App() {
   const [messages, setMessages] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyError, setHistoryError] = useState("");
+  const [initializationError, setInitializationError] = useState("");
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
@@ -376,6 +377,7 @@ export default function App() {
         historyRequestRef.current += 1;
         setMessages([]);
         setHistoryError("");
+        setInitializationError("");
         setAccessStatus(null);
       }
       sessionUserRef.current = nextUserId;
@@ -392,13 +394,19 @@ export default function App() {
     const isCurrentRequest = () => active && historyRequestRef.current === requestId;
     setMessages([]);
     setHistoryError("");
+    setInitializationError("");
+    setAccessStatus(null);
     setHistoryLoading(true);
 
     async function restoreHistory() {
       try {
         const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
         const accessToken = sessionData.session?.access_token;
-        if (sessionError || !accessToken) throw new Error("Missing session");
+        if (sessionError || !accessToken) {
+          const error = new Error("Missing session");
+          error.stage = "authentication";
+          throw error;
+        }
         const result = await restoreChatHistory({ accessToken, fetchImpl: fetch });
         if (!isCurrentRequest()) return;
 
@@ -412,8 +420,15 @@ export default function App() {
         }
 
         setMessages(result.messages.length ? result.messages : [WELCOME_MESSAGE]);
-      } catch {
-        if (isCurrentRequest()) setHistoryError("Nu am putut incarca istoricul conversatiei. Reincarca pagina si incearca din nou.");
+      } catch (error) {
+        if (!isCurrentRequest()) return;
+        if (error.stage === "history") {
+          setHistoryError("Nu am putut incarca istoricul conversatiei. Reincarca pagina si incearca din nou.");
+        } else {
+          setInitializationError(error.stage === "authentication"
+            ? "Sesiunea a expirat. Delogheaza-te si autentifica-te din nou."
+            : "Nu am putut verifica accesul Founder. Reincarca pagina si incearca din nou.");
+        }
       } finally {
         if (isCurrentRequest()) setHistoryLoading(false);
       }
@@ -426,6 +441,7 @@ export default function App() {
   async function signOut() {
     setMessages([]);
     setHistoryError("");
+    setInitializationError("");
     await supabase.auth.signOut();
   }
 
@@ -517,6 +533,7 @@ export default function App() {
         <div style={{ height: 450, overflowY: "auto", padding: "16px 16px 8px" }}>
           {historyLoading && <div style={{ color: "#a78bfa", fontSize: 13, textAlign: "center", padding: 16 }}>Se incarca istoricul...</div>}
           {historyError && <div style={{ color: "#f87171", fontSize: 13, textAlign: "center", padding: 16 }}>{historyError}</div>}
+          {initializationError && <div role="alert" style={{ color: "#f87171", fontSize: 13, textAlign: "center", padding: 16 }}>{initializationError}</div>}
           {!historyLoading && messages.map((m, i) => <Message key={i} msg={m} />)}
           {loading && <div style={{ display: "flex", gap: 10, marginBottom: 14, alignItems: "flex-end" }}><div style={{ width: 34, height: 34, borderRadius: "50%", overflow: "hidden" }}><img src="https://i.imgur.com/UUrViWA.jpeg" alt="EWA AI" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top" }} /></div><div style={{ background: "rgba(255,255,255,0.06)", borderRadius: "20px 20px 20px 4px", border: "1px solid rgba(167,139,250,0.2)" }}><TypingDots /></div></div>}
           <div ref={bottomRef} />

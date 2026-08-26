@@ -87,8 +87,8 @@ test("Checkout return query never grants access", () => {
 test("chat page has one history response declaration and one set of chat controls", () => {
   const page = readFileSync(join(root, "pages/index.jsx"), "utf8");
   const restoreHistory = readFileSync(join(root, "lib/chat/restoreHistory.js"), "utf8");
-  assert.equal((restoreHistory.match(/const historyResponse =/g) || []).length, 1);
-  assert.equal((restoreHistory.match(/const accessResponse =/g) || []).length, 1);
+  assert.equal((restoreHistory.match(/historyResponse = await fetchImpl/g) || []).length, 1);
+  assert.equal((restoreHistory.match(/accessResponse = await fetchImpl/g) || []).length, 1);
   assert.equal((page.match(/<textarea\b/g) || []).length, 1);
   assert.equal((page.match(/<button onClick=\{\(\) => send\(\)\}/g) || []).length, 1);
   assert.match(page, /accessStatus && !accessStatus\.entitled[\s\S]*EWA AI Founder/);
