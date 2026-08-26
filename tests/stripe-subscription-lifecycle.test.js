@@ -112,6 +112,34 @@ test("synchronization validates Founder price and trusted subscription metadata"
   assert.throws(() => trustedUserId(subscription({ metadata: { ewa_user_id: "browser-user" } })), /trusted EWA user/);
 });
 
+test("synchronization accepts the unexpanded price ID returned on a Stripe subscription item", async () => {
+  const calls = [];
+  const client = { rpc: async (name, payload) => { calls.push([name, payload]); return { data: true, error: null }; } };
+  const unexpandedPrice = subscription({
+    items: { data: [{ price: "price_founder", current_period_start: 100, current_period_end: 200 }] }
+  });
+
+  assert.deepEqual(
+    await synchronizeFounderSubscription(client, unexpandedPrice, { id: "evt_unexpanded", created: 124 }),
+    { ignored: false, userId }
+  );
+  assert.equal(calls[0][1].p_stripe_price_id, "price_founder");
+});
+
+test("synchronization distinguishes stale events and rejects malformed RPC success responses", async () => {
+  const event = { id: "evt_1", created: 123 };
+  const staleClient = { rpc: async () => ({ data: false, error: null }) };
+  assert.deepEqual(await synchronizeFounderSubscription(staleClient, subscription(), event), {
+    ignored: true, reason: "stale_or_duplicate_event", userId
+  });
+
+  const malformedClient = { rpc: async () => ({ data: null, error: null }) };
+  await assert.rejects(
+    synchronizeFounderSubscription(malformedClient, subscription(), event),
+    /unexpected result/
+  );
+});
+
 test("duplicate and stale events are rejected atomically by the database migration", () => {
   const migration = readFileSync(join(root, "supabase/migrations/20260826020000_add_stripe_event_ordering.sql"), "utf8");
   assert.match(migration, /on conflict \(user_id\) do update/);
@@ -126,6 +154,7 @@ test("webhook preserves raw body, verifies signatures first, and supports lifecy
   assert.match(route, /status\(400\)\.json\(\{ error: "invalid_signature" \}\)/);
   assert.ok(route.indexOf("constructEvent") < route.indexOf("getPrivilegedSupabase()"));
   for (const type of ["checkout.session.completed", "customer.subscription.created", "customer.subscription.updated", "customer.subscription.deleted"]) assert.match(route, new RegExp(type.replaceAll(".", "\\.")));
+  assert.match(route, /founderSynchronizationRequired[\s\S]*result\.reason === "not_founder_price"[\s\S]*throw new Error/);
 });
 
 test("paid POST operations are gated while history and stored data remain read-only accessible", () => {
