@@ -96,13 +96,15 @@ test("atomic persistence derives ownership from auth.uid and cannot receive a us
 test("web API loads canonical history and accepts only the latest client message", () => {
   const api = readFileSync(join(__dirname, "..", "pages", "api", "chat.js"), "utf8");
   const page = readFileSync(join(__dirname, "..", "pages", "index.jsx"), "utf8");
+  const restoreHistory = readFileSync(join(__dirname, "..", "lib", "chat", "restoreHistory.js"), "utf8");
   assert.match(api, /req\.method === "GET"[\s\S]*loadChatHistory\(auth\.client, auth\.user\.id\)/);
   assert.match(api, /loadChatContext\(auth\.client, auth\.user\.id\)/);
   assert.match(api, /messages = \[\.\.\.history, \{ role: "user", content: message \}\]/);
   assert.match(api, /await saveChatExchange\(auth\.client, message, reply\)/);
   assert.doesNotMatch(api, /const \{ messages \} = req\.body/);
   assert.match(page, /body: JSON\.stringify\(\{ message: msg \}\)/);
-  assert.match(page, /payload\.messages\.length \? payload\.messages : \[WELCOME_MESSAGE\]/);
+  assert.match(restoreHistory, /messages: history\.messages/);
+  assert.match(page, /result\.messages\.length \? result\.messages : \[WELCOME_MESSAGE\]/);
   assert.match(page, /setMessages\(\[\]\);[\s\S]*await supabase\.auth\.signOut\(\)/);
 });
 
