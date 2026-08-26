@@ -27,15 +27,22 @@ export default async function handler(req, res) {
 
   try {
     let subscription = null;
+    let founderSynchronizationRequired = false;
     if (["customer.subscription.created", "customer.subscription.updated", "customer.subscription.deleted"].includes(event.type)) {
       subscription = event.data.object;
     } else if (event.type === "checkout.session.completed") {
       const session = event.data.object;
       if (session.mode === "subscription" && session.subscription) {
         subscription = await getStripe().subscriptions.retrieve(session.subscription);
+        founderSynchronizationRequired = true;
       }
     }
-    if (subscription) await synchronizeFounderSubscription(getPrivilegedSupabase(), subscription, event);
+    if (subscription) {
+      const result = await synchronizeFounderSubscription(getPrivilegedSupabase(), subscription, event);
+      if (founderSynchronizationRequired && result.reason === "not_founder_price") {
+        throw new Error("Completed Founder checkout subscription does not contain the configured Founder price");
+      }
+    }
     return res.status(200).json({ received: true });
   } catch (error) {
     console.error("Verified Stripe webhook processing failed:", error);
