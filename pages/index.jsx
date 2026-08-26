@@ -395,14 +395,18 @@ export default function App() {
         const accessToken = sessionData.session?.access_token;
         if (sessionError || !accessToken) throw new Error("Missing session");
         const headers = { "Authorization": `Bearer ${accessToken}` };
-        const [response, accessResponse] = await Promise.all([
-          fetch("/api/chat", { headers }),
-          fetch("/api/access-status", { headers })
-        ]);
-        const [payload, accessPayload] = await Promise.all([response.json(), accessResponse.json()]);
-        if (!response.ok) throw new Error(payload.error || "History request failed");
+        const accessResponse = await fetch("/api/access-status", { headers });
+        const accessPayload = await accessResponse.json();
         if (!accessResponse.ok) throw new Error(accessPayload.error || "Access request failed");
         if (active) setAccessStatus(accessPayload);
+
+        // Access is derived by the server. A blocked user must not request paid
+        // chat data (or see a misleading history error), but can still checkout.
+        if (!accessPayload.entitled) return;
+
+        const response = await fetch("/api/chat", { headers });
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.error || "History request failed");
         if (active) setMessages(payload.messages.length ? payload.messages : [WELCOME_MESSAGE]);
       } catch {
         if (active) setHistoryError("Nu am putut incarca istoricul conversatiei. Reincarca pagina si incearca din nou.");
