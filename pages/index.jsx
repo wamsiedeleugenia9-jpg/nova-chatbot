@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { supabase } from "../lib/supabaseClient";
+import restoreChatHistory from "../lib/chat/restoreHistory";
 
 const WELCOME_MESSAGE = { role: "assistant", content: "Salut! Sunt EWA AI - asistenta ta AI de marketing digital, creata de EWA.\n\nCu ce incepem azi?\n\nPot genera:\n- Hook-uri virale pentru Reels\n- Scenarii complete Reels\n- Structuri Carusele\n- CTA-uri de engagement si vanzare\n- Captions\n\nSpune-mi ce vrei sa cream!" };
 
@@ -351,6 +352,7 @@ export default function App() {
   const [accessStatus, setAccessStatus] = useState(null);
   const bottomRef = useRef(null);
   const sessionUserRef = useRef(null);
+  const historyRequestRef = useRef(0);
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, loading]);
 
@@ -371,6 +373,7 @@ export default function App() {
       if (event === "PASSWORD_RECOVERY") setRecovering(true);
       const nextUserId = newSession?.user?.id || null;
       if (sessionUserRef.current !== nextUserId) {
+        historyRequestRef.current += 1;
         setMessages([]);
         setHistoryError("");
         setAccessStatus(null);
@@ -384,7 +387,9 @@ export default function App() {
   useEffect(() => {
     if (!session?.user?.id) return;
     sessionUserRef.current = session.user.id;
+    const requestId = ++historyRequestRef.current;
     let active = true;
+    const isCurrentRequest = () => active && historyRequestRef.current === requestId;
     setMessages([]);
     setHistoryError("");
     setHistoryLoading(true);
@@ -394,24 +399,23 @@ export default function App() {
         const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
         const accessToken = sessionData.session?.access_token;
         if (sessionError || !accessToken) throw new Error("Missing session");
-        const headers = { "Authorization": `Bearer ${accessToken}` };
-        const accessResponse = await fetch("/api/access-status", { headers });
-        const accessPayload = await accessResponse.json();
-        if (!accessResponse.ok) throw new Error(accessPayload.error || "Access request failed");
-        if (active) setAccessStatus(accessPayload);
+        const result = await restoreChatHistory({ accessToken, fetchImpl: fetch });
+        if (!isCurrentRequest()) return;
 
-        // Access is derived by the server. A blocked user must not request paid
-        // chat data (or see a misleading history error), but can still checkout.
-        if (!accessPayload.entitled) return;
+        setAccessStatus(result.access);
+        if (!result.access.entitled) {
+          // A previous request may have failed while auth/access state was changing.
+          // Non-entitlement is expected and must win over that stale failure.
+          setHistoryError("");
+          setMessages([]);
+          return;
+        }
 
-        const response = await fetch("/api/chat", { headers });
-        const payload = await response.json();
-        if (!response.ok) throw new Error(payload.error || "History request failed");
-        if (active) setMessages(payload.messages.length ? payload.messages : [WELCOME_MESSAGE]);
+        setMessages(result.messages.length ? result.messages : [WELCOME_MESSAGE]);
       } catch {
-        if (active) setHistoryError("Nu am putut incarca istoricul conversatiei. Reincarca pagina si incearca din nou.");
+        if (isCurrentRequest()) setHistoryError("Nu am putut incarca istoricul conversatiei. Reincarca pagina si incearca din nou.");
       } finally {
-        if (active) setHistoryLoading(false);
+        if (isCurrentRequest()) setHistoryLoading(false);
       }
     }
 
