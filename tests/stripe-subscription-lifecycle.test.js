@@ -88,7 +88,8 @@ test("chat page has one history response declaration and one set of chat control
   const page = readFileSync(join(root, "pages/index.jsx"), "utf8");
   const restoreHistory = page.slice(page.indexOf("async function restoreHistory()"), page.indexOf("restoreHistory();"));
   assert.equal((restoreHistory.match(/\bresponse\b/g) || []).length, 3);
-  assert.equal((restoreHistory.match(/const \[response, accessResponse\]/g) || []).length, 1);
+  assert.equal((restoreHistory.match(/const response =/g) || []).length, 1);
+  assert.equal((restoreHistory.match(/const accessResponse =/g) || []).length, 1);
   assert.equal((page.match(/<textarea\b/g) || []).length, 1);
   assert.equal((page.match(/<button onClick=\{\(\) => send\(\)\}/g) || []).length, 1);
   assert.match(page, /accessStatus && !accessStatus\.entitled[\s\S]*EWA AI Founder/);
