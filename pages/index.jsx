@@ -346,6 +346,8 @@ export default function App() {
   const [historyError, setHistoryError] = useState("");
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [checkoutError, setCheckoutError] = useState("");
   const bottomRef = useRef(null);
   const sessionUserRef = useRef(null);
 
@@ -411,6 +413,27 @@ export default function App() {
     setMessages([]);
     setHistoryError("");
     await supabase.auth.signOut();
+  }
+
+  async function startFounderCheckout() {
+    if (checkoutLoading) return;
+    setCheckoutLoading(true);
+    setCheckoutError("");
+    try {
+      const { data, error } = await supabase.auth.getSession();
+      const accessToken = data.session?.access_token;
+      if (error || !accessToken) throw new Error("Missing session");
+      const response = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${accessToken}` }
+      });
+      const payload = await response.json();
+      if (!response.ok || !payload.url) throw new Error(payload.error || "Checkout failed");
+      window.location.assign(payload.url);
+    } catch {
+      setCheckoutError("Nu am putut deschide plata. Incearca din nou.");
+      setCheckoutLoading(false);
+    }
   }
 
   if (session === undefined) {
@@ -485,6 +508,16 @@ export default function App() {
           <div ref={bottomRef} />
         </div>
         <div style={{ padding: "10px 16px 18px", borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 10, padding: "10px 12px", borderRadius: 14, background: "linear-gradient(135deg, rgba(109,40,217,0.16), rgba(219,39,119,0.12))", border: "1px solid rgba(167,139,250,0.22)" }}>
+            <div>
+              <div style={{ color: "#f8fafc", fontSize: 13, fontWeight: 700 }}>EWA AI Founder</div>
+              <div style={{ color: "#c4b5fd", fontSize: 12 }}>€17/month</div>
+            </div>
+            <button onClick={startFounderCheckout} disabled={checkoutLoading} style={{ border: "none", borderRadius: 10, padding: "8px 12px", background: checkoutLoading ? "rgba(255,255,255,0.08)" : "linear-gradient(135deg, #6d28d9, #db2777)", color: checkoutLoading ? "#64748b" : "#fff", cursor: checkoutLoading ? "wait" : "pointer", fontFamily: "Georgia, serif", fontSize: 12, fontWeight: 600 }}>
+              {checkoutLoading ? "Se deschide..." : "Devino Founder"}
+            </button>
+          </div>
+          {checkoutError && <div role="alert" style={{ color: "#f87171", fontSize: 12, textAlign: "center", marginBottom: 8 }}>{checkoutError}</div>}
           <a href="/blueprint" style={{ display: "block", textAlign: "center", color: "#c4b5fd", fontSize: 13, marginBottom: 10 }}>Deschide Creator Blueprint →</a>
           <div style={{ display: "flex", gap: 10, alignItems: "flex-end", background: "rgba(255,255,255,0.05)", borderRadius: 18, border: "1px solid rgba(167,139,250,0.25)", padding: "10px 14px" }}>
             <textarea rows={1} value={input} disabled={historyLoading || !!historyError} onChange={e => { setInput(e.target.value); e.target.style.height = "auto"; e.target.style.height = Math.min(e.target.scrollHeight, 100) + "px"; }} onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }} placeholder="Cere hook-uri, CTA-uri, scenarii..." style={{ flex: 1, background: "transparent", border: "none", color: "#f1f5f9", fontSize: 14, lineHeight: 1.6, maxHeight: 100, overflowY: "auto" }} />
