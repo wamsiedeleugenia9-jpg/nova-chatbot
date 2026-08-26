@@ -106,9 +106,13 @@ test("web API loads canonical history and accepts only the latest client message
   assert.match(page, /setMessages\(\[\]\);[\s\S]*await supabase\.auth\.signOut\(\)/);
 });
 
-test("system prompt treats supplied persisted history as private conversational continuity", () => {
+test("system prompt treats supplied previous-session free chat as bounded private conversational continuity", () => {
   const api = readFileSync(join(__dirname, "..", "pages", "api", "chat.js"), "utf8");
-  assert.match(api, /istoricul persistent din sesiunile autentificate anterioare ale aceluiasi utilizator/);
-  assert.match(api, /nu sustine ca nu ai acces la o sesiune anterioara cand raspunsul exista in context/);
-  assert.match(api, /Nu pretinde ca iti amintesti informatii absente[\s\S]*nu sugera niciodata acces la conversatiile altui utilizator/);
+  assert.match(api, /Mesajele de conversatie libera furnizate in array-ul Anthropic \\\`messages\\\` reprezinta istoricul persistent disponibil al utilizatorului autentificat/);
+  assert.match(api, /pot proveni din sesiuni anterioare de browser sau autentificare; limitele dintre sesiuni nu fac indisponibile mesajele care au fost furnizate/);
+  assert.match(api, /Daca o informatie exista in aceste mesaje[\s\S]*nu afirma ca istoricul conversatiilor libere din sesiunile anterioare nu este disponibil/);
+  assert.match(api, /Ai acces numai la istoricul inclus in contextul curent, nu la toate conversatiile istorice/);
+  assert.match(api, /Daca informatia nu exista in mesajele furnizate, Creator Blueprint, Creator DNA sau Working Memory, nu pretinde ca ti-o amintesti/);
+  assert.match(api, /apartine exclusiv utilizatorului autentificat; nu sugera niciodata acces la conversatiile altui utilizator/);
+  assert.match(api, /nu explica arhitectura interna decat daca ti se cere explicit[\s\S]*evita termenii interni inutili/);
 });
