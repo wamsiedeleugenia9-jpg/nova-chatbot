@@ -3,6 +3,7 @@ const { readFileSync } = require("node:fs");
 const { join } = require("node:path");
 const { test, after } = require("node:test");
 const Module = require("node:module");
+const { spawnSync } = require("node:child_process");
 
 const root = join(__dirname, "..");
 const originalLoad = Module._load;
@@ -25,6 +26,31 @@ function subscription(overrides = {}) {
     ...overrides
   };
 }
+
+test("Pages Router access-status dependencies load without the RSC server-only poison pill", () => {
+  const founderAccessPath = join(root, "lib", "server", "founderAccess.js");
+  const result = spawnSync(process.execPath, ["-e", `require(${JSON.stringify(founderAccessPath)})`], {
+    encoding: "utf8"
+  });
+
+  assert.equal(result.status, 0, result.stderr);
+  const route = readFileSync(join(root, "pages", "api", "access-status.js"), "utf8");
+  const access = readFileSync(founderAccessPath, "utf8");
+  const entitlement = readFileSync(join(root, "lib", "server", "founderEntitlement.js"), "utf8");
+  assert.match(route, /lib\/server\/founderAccess/);
+  assert.match(access, /require\("\.\/founderEntitlement"\)/);
+  assert.doesNotMatch(entitlement, /require\(["']server-only["']\)/);
+});
+
+test("Founder entitlement helper still rejects browser execution", () => {
+  const entitlementPath = join(root, "lib", "server", "founderEntitlement.js");
+  const result = spawnSync(process.execPath, ["-e", `global.window = {}; require(${JSON.stringify(entitlementPath)})`], {
+    encoding: "utf8"
+  });
+
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /Founder entitlement evaluation is server-only/);
+});
 
 test("only active Founder access within its paid period is entitled", () => {
   const now = new Date("2026-01-01T00:00:00Z");
