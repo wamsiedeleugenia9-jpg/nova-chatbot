@@ -4,6 +4,7 @@ const { answerInterpretationPrompt, creatorDnaPrompt, sectionSummaryPrompt } = r
 const { summaryRequestOptions, summaryWithRetry } = require("../../lib/blueprint/summaryResponse");
 const { appendWhy, creatorDnaFromResponse, creatorDnaRequestOptions, creatorDnaResponseDiagnostics } = require("../../lib/blueprint/creatorDnaResponse");
 const { authenticatedClient } = require("../../lib/server/supabase");
+const { authorizeFounder } = require("../../lib/server/founderAccess");
 
 const MAX_ANSWER_LENGTH = 8000;
 const MAX_ADJUSTMENT_LENGTH = 2000;
@@ -118,6 +119,12 @@ export default async function handler(req, res) {
   try { auth = await authenticatedClient(req); } catch (error) { console.error(error); return res.status(500).json({ error: "Serviciul nu este configurat." }); }
   if (!auth) return res.status(401).json({ error: "Autentificare necesară." });
   const { client, user } = auth;
+  if (req.method === "POST") {
+    try {
+      const authorization = await authorizeFounder(auth);
+      if (!authorization.allowed) return res.status(403).json({ error: "subscription_required" });
+    } catch (error) { console.error(error); return res.status(500).json({ error: "Serviciul nu este configurat." }); }
+  }
   try {
     let records = await ensure(client, user.id, await load(client, user.id));
     if (req.method === "GET") return res.status(200).json(responsePayload(records));

@@ -3,6 +3,7 @@
 // Cheia API nu mai ajunge niciodata in bundle-ul trimis clientului.
 
 import { authenticatedClient } from "../../lib/server/supabase";
+import { authorizeFounder } from "../../lib/server/founderAccess";
 import { loadCreatorBlueprint, systemPromptWithCreatorBlueprint } from "../../lib/chat/creatorBlueprintContext";
 import { loadCreatorDna, systemPromptWithCreatorDna } from "../../lib/chat/creatorDnaContext";
 import {
@@ -90,6 +91,16 @@ export default async function handler(req, res) {
       console.error("Eroare la incarcarea istoricului EWA:", error);
       return res.status(500).json({ error: "Nu am putut incarca istoricul conversatiei. Incearca din nou." });
     }
+  }
+
+  // History remains readable so expiration never hides or deletes user data;
+  // only paid AI generation is protected.
+  try {
+    const authorization = await authorizeFounder(auth);
+    if (!authorization.allowed) return res.status(403).json({ error: "subscription_required" });
+  } catch (error) {
+    console.error("Eroare la verificarea abonamentului Founder:", error);
+    return res.status(500).json({ error: "Eroare de configurare server. Incearca mai tarziu." });
   }
 
   // Creator DNA remains server-side. A transient persistence failure must not
