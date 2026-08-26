@@ -1,18 +1,11 @@
 const assert = require("node:assert/strict");
 const { readFileSync } = require("node:fs");
 const { join } = require("node:path");
-const { test, after } = require("node:test");
+const { test } = require("node:test");
 const Module = require("node:module");
 const { spawnSync } = require("node:child_process");
 
 const root = join(__dirname, "..");
-const originalLoad = Module._load;
-Module._load = function(request, parent, isMain) {
-  if (request === "server-only") return {};
-  return originalLoad.call(this, request, parent, isMain);
-};
-after(() => { Module._load = originalLoad; });
-
 process.env.STRIPE_FOUNDER_PRICE_ID = "price_founder";
 const { isFounderSubscriptionEntitled } = require("../lib/server/founderEntitlement");
 const { synchronizeFounderSubscription, trustedUserId } = require("../lib/server/stripeSubscriptions");
@@ -50,6 +43,47 @@ test("Founder entitlement helper still rejects browser execution", () => {
 
   assert.notEqual(result.status, 0);
   assert.match(result.stderr, /Founder entitlement evaluation is server-only/);
+});
+
+test("complete Pages Router webhook dependency chain loads without server-only", async () => {
+  const routePath = join(root, "pages/api/stripe/webhook.js");
+  const route = readFileSync(routePath, "utf8");
+  const { loadBindings, transform } = require("next/dist/build/swc");
+  await loadBindings();
+  const transformed = await transform(route, {
+    filename: routePath,
+    jsc: { parser: { syntax: "ecmascript" }, target: "es2020" },
+    module: { type: "commonjs" }
+  });
+  const compiledRoute = new Module(routePath, module);
+  compiledRoute.filename = routePath;
+  compiledRoute.paths = Module._nodeModulePaths(join(root, "pages/api/stripe"));
+
+  const originalLoad = Module._load;
+  Module._load = function rejectServerOnly(request, parent, isMain) {
+    if (request === "server-only") throw new Error("server-only entered the webhook runtime chain");
+    return originalLoad.call(this, request, parent, isMain);
+  };
+  try {
+    compiledRoute._compile(transformed.code, routePath);
+    assert.equal(typeof compiledRoute.exports.default, "function");
+  } finally {
+    Module._load = originalLoad;
+  }
+});
+
+test("webhook privileged dependencies reject browser execution", () => {
+  for (const [relativePath, message] of [
+    ["lib/server/privilegedSupabase.js", "privileged Supabase client is server-only"],
+    ["lib/server/stripeSubscriptions.js", "subscription synchronization is server-only"]
+  ]) {
+    const modulePath = join(root, relativePath);
+    const result = spawnSync(process.execPath, ["-e", `global.window = {}; require(${JSON.stringify(modulePath)})`], {
+      encoding: "utf8"
+    });
+    assert.notEqual(result.status, 0, relativePath);
+    assert.match(result.stderr, new RegExp(message), relativePath);
+  }
 });
 
 test("only active Founder access within its paid period is entitled", () => {

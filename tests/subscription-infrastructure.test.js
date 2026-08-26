@@ -39,7 +39,7 @@ test("subscription RLS permits own-row reads but no authenticated writes", () =>
 
 test("privileged Supabase helper is isolated under the server directory", () => {
   const helper = readFileSync(join(root, "lib", "server", "privilegedSupabase.js"), "utf8");
-  assert.match(helper, /^require\("server-only"\);/);
+  assert.doesNotMatch(helper, /require\(["']server-only["']\)/);
   assert.match(helper, /process\.env\.SUPABASE_SERVICE_ROLE_KEY/);
   assert.match(helper, /typeof window !== "undefined"/);
   assert.doesNotMatch(helper, /NEXT_PUBLIC_/);
