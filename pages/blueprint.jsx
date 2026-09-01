@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
+import { effectiveBlueprintEntitlement } from "../lib/blueprint/entitlement";
 
 const shell = { minHeight: "100vh", background: "radial-gradient(ellipse at top left,#1e0a3c,#0a0a0f 65%)", color: "#f8fafc", padding: "32px 16px", fontFamily: "Georgia,serif" };
 const card = { maxWidth: 760, margin: "0 auto", padding: "clamp(24px,6vw,48px)", borderRadius: 28, background: "rgba(255,255,255,.04)", border: "1px solid rgba(167,139,250,.22)" };
@@ -22,10 +23,30 @@ export default function Blueprint() {
   const [editAnswers, setEditAnswers] = useState([]); const [showWorkshops, setShowWorkshops] = useState(false); const [confirmReset, setConfirmReset] = useState(false);
   const [adjusting, setAdjusting] = useState(false); const [busy, setBusy] = useState(false); const [loading, setLoading] = useState(true); const [error, setError] = useState("");
   useEffect(() => { let active = true; supabase.auth.getSession().then(({ data: auth }) => active && setSession(auth.session)); const { data: listener } = supabase.auth.onAuthStateChange((_e, next) => setSession(next)); return () => { active = false; listener.subscription.unsubscribe(); }; }, []);
-  useEffect(() => { if (session) load(); }, [session]);
+  useEffect(() => {
+    if (!session) { setData(null); return undefined; }
+    let active = true;
+    load().catch(() => {});
+    return () => { active = false; };
+
+    async function load() {
+      setLoading(true); setError(""); setData(null);
+      try {
+        const headers = { Authorization: `Bearer ${session.access_token}` };
+        const [accessResponse, blueprintResponse] = await Promise.all([
+          fetch("/api/access-status", { cache: "no-store", headers }),
+          fetch("/api/blueprint", { cache: "no-store", headers: { ...headers, "Content-Type": "application/json" } })
+        ]);
+        const [access, blueprint] = await Promise.all([accessResponse.json(), blueprintResponse.json()]);
+        if (!accessResponse.ok) throw new Error(access.error);
+        if (!blueprintResponse.ok) throw new Error(blueprint.error);
+        if (active) setData({ ...blueprint, entitled: effectiveBlueprintEntitlement(access, blueprint) });
+      } catch (err) { if (active) showError(err); }
+      finally { if (active) setLoading(false); }
+    }
+  }, [session?.access_token]);
   useEffect(() => { if (data?.state?.editingAnswers) setEditAnswers(data.state.answers.map(item => item.rawAnswer)); }, [data?.state?.currentAtelier, data?.state?.editingAnswers]);
   function showError(err) { setError(err.message || "A apărut o eroare."); }
-  async function load() { setLoading(true); setError(""); try { setData(await request("GET")); } catch (err) { showError(err); } finally { setLoading(false); } }
   async function request(method, body) { const response = await fetch("/api/blueprint", { method, cache: "no-store", headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` }, body: body && JSON.stringify(body) }); const result = await response.json(); if (!response.ok) throw new Error(result.error); return result; }
   async function act(body) { setBusy(true); setError(""); try { const next = await request("POST", body); setData(next); setAnswer(""); setAdjustment(""); setAdjusting(false); } catch (err) { showError(err); } finally { setBusy(false); } }
   async function openWorkshop(atelierNumber) { setBusy(true); setError(""); try { const next = await request("POST", { action: "edit_workshop", atelierNumber }); setData(next); setEditAnswers(next.state.answers.map(item => item.rawAnswer)); setShowWorkshops(false); } catch (err) { showError(err); } finally { setBusy(false); } }
@@ -34,7 +55,7 @@ export default function Blueprint() {
   function downloadDna() { const url = URL.createObjectURL(new Blob([creatorDnaText(data.creatorDna)], { type: "text/plain;charset=utf-8" })); const link = document.createElement("a"); link.href = url; link.download = "creator-dna.txt"; link.click(); URL.revokeObjectURL(url); }
   if (session === undefined || (session && loading)) return <main style={shell}><div style={card}>Se încarcă…</div></main>;
   if (!session) return <main style={shell}><div style={{ ...card, textAlign: "center" }}><h1>Creator Blueprint</h1><p>Autentifică-te pentru a începe sau a continua.</p><a href="/" style={{ ...button, display: "inline-block", textDecoration: "none" }}>Mergi la autentificare</a></div></main>;
-  if (!data) return <main style={shell}><div style={{ ...card, textAlign: "center" }}><h1>Creator Blueprint</h1><p role="alert" style={{ color: "#fca5a5" }}>{error || "Nu am putut încărca progresul."}</p><button onClick={load} style={button}>Încearcă din nou</button><br /><a href="/" style={{ display: "inline-block", color: "#a78bfa", marginTop: 28 }}>← Înapoi la EWA AI</a></div></main>;
+  if (!data) return <main style={shell}><div style={{ ...card, textAlign: "center" }}><h1>Creator Blueprint</h1><p role="alert" style={{ color: "#fca5a5" }}>{error || "Nu am putut încărca progresul."}</p><button onClick={() => window.location.reload()} style={button}>Încearcă din nou</button><br /><a href="/" style={{ display: "inline-block", color: "#a78bfa", marginTop: 28 }}>← Înapoi la EWA AI</a></div></main>;
   const { content, state } = data; const atelier = content.ateliers[state.currentAtelier - 1];
   const questionNumber = Math.min(state.currentQuestion, atelier.questions.length); const allAnswered = state.answers.filter(item => item.rawAnswer).length === atelier.questions.length;
   if (data.entitled !== true) return <main style={shell}><div style={card}>

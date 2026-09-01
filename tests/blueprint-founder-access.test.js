@@ -6,18 +6,20 @@ const { join } = require("node:path");
 const root = join(__dirname, "..");
 const api = readFileSync(join(root, "pages", "api", "blueprint.js"), "utf8");
 const page = readFileSync(join(root, "pages", "blueprint.jsx"), "utf8");
+const accessStatus = readFileSync(join(root, "pages", "api", "access-status.js"), "utf8");
+const { effectiveBlueprintEntitlement } = require("../lib/blueprint/entitlement");
 
 test("active Founders retain the normal Blueprint creation and mutation path", () => {
-  assert.match(api, /if \(authorization\.allowed\) records = await ensure\(client, user\.id, records\)/);
+  assert.match(api, /if \(authorization\.allowed === true\) records = await ensure\(client, user\.id, records\)/);
   assert.match(api, /records = await ensure\(client, user\.id, records\);[\s\S]*const action = req\.body\?\.action/);
   assert.match(api, /responsePayload\(records, true\)/);
 });
 
 test("an unsubscribed new user cannot create or mutate Blueprint data", () => {
-  const denial = api.indexOf('if (req.method === "POST" && !authorization.allowed)');
+  const denial = api.indexOf('if (req.method === "POST" && authorization.allowed !== true)');
   const mutationSetup = api.indexOf("records = await ensure(client, user.id, records);", denial);
   assert.ok(denial > -1 && mutationSetup > denial, "POST denial must precede every mutation/setup path");
-  assert.match(api, /if \(authorization\.allowed\) records = await ensure/);
+  assert.match(api, /if \(authorization\.allowed === true\) records = await ensure/);
   assert.match(page, /if \(data\.entitled !== true\)[\s\S]*Abonament Founder necesar/);
   assert.match(page, /data\.hasBlueprint \? "Blueprint-ul tău existent rămâne disponibil doar pentru citire/);
 });
@@ -36,6 +38,17 @@ test("unfinished Blueprint entitlement responses cannot be reused after a subscr
   assert.match(api, /responsePayload\(records, authorization\.allowed === true\)/);
   assert.match(page, /fetch\("\/api\/blueprint", \{ method, cache: "no-store"/);
   assert.match(page, /if \(data\.entitled !== true\) return/);
+  assert.match(accessStatus, /Cache-Control", "private, no-store, max-age=0"/);
+  assert.match(page, /fetch\("\/api\/access-status", \{ cache: "no-store"/);
+});
+
+test("a chat-denied user cannot continue an unfinished Blueprint from an earlier session", () => {
+  const unfinishedBlueprint = { entitled: true, hasBlueprint: true, state: { currentAtelier: 1, currentQuestion: 2 } };
+  assert.equal(effectiveBlueprintEntitlement({ entitled: false }, unfinishedBlueprint), false);
+  assert.equal(effectiveBlueprintEntitlement({ entitled: true }, unfinishedBlueprint), true);
+  assert.equal(effectiveBlueprintEntitlement({ entitled: "true" }, unfinishedBlueprint), false);
+  assert.match(page, /entitled: effectiveBlueprintEntitlement\(access, blueprint\)/);
+  assert.match(api, /authorization\.allowed !== true[\s\S]*subscription_required/);
 });
 
 test("Blueprint persistence queries remain scoped to the authenticated user", () => {
