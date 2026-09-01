@@ -164,7 +164,7 @@ test("paid POST operations are gated while history and stored data remain read-o
   assert.match(chat, /req\.method === "GET"[\s\S]*loadChatHistory/);
   assert.match(chat + blueprint, /status\(403\)\.json\(\{ error: "subscription_required" \}\)/);
   assert.doesNotMatch(chat, /stripe_subscriptions[\s\S]{0,100}\.delete\(/);
-  assert.match(blueprint, /if \(req\.method === "POST"\)[\s\S]*authorizeFounder\(auth\)/);
+  assert.ok(blueprint.indexOf("authorizeFounder(auth)") < blueprint.indexOf('if (req.method === "POST" && !authorization.allowed)'));
 });
 
 test("Checkout return query never grants access", () => {
