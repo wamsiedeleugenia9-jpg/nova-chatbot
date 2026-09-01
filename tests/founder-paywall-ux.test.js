@@ -90,7 +90,7 @@ test("admin bypass receives the same normal history path", async () => {
 
   assert.deepEqual(requests, ["/api/access-status", "/api/chat"]);
   assert.equal(result.access.admin, true);
-  assert.match(accessApi, /entitled: authorization\.allowed, admin: authorization\.access\.role === "admin"/);
+  assert.match(accessApi, /entitled: authorization\.allowed === true, admin: authorization\.access\.role === "admin"/);
   assert.doesNotMatch(page, /accessStatus\?\.admin\s*&&/);
 });
 

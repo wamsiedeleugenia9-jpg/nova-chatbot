@@ -132,13 +132,13 @@ export default async function handler(req, res) {
   try {
     authorization = await authorizeFounder(auth);
   } catch (error) { console.error(error); return res.status(500).json({ error: "Serviciul nu este configurat." }); }
-  if (req.method === "POST" && !authorization.allowed) return res.status(403).json({ error: "subscription_required" });
+  if (req.method === "POST" && authorization.allowed !== true) return res.status(403).json({ error: "subscription_required" });
   try {
     let records = await load(client, user.id);
     // GET remains read-only for former Founders. In particular, do not let the
     // initial page load create an empty Blueprint or its section rows.
     if (req.method === "GET") {
-      if (authorization.allowed) records = await ensure(client, user.id, records);
+      if (authorization.allowed === true) records = await ensure(client, user.id, records);
       return res.status(200).json(responsePayload(records, authorization.allowed === true));
     }
     records = await ensure(client, user.id, records);
