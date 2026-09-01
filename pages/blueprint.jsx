@@ -26,7 +26,7 @@ export default function Blueprint() {
   useEffect(() => { if (data?.state?.editingAnswers) setEditAnswers(data.state.answers.map(item => item.rawAnswer)); }, [data?.state?.currentAtelier, data?.state?.editingAnswers]);
   function showError(err) { setError(err.message || "A apărut o eroare."); }
   async function load() { setLoading(true); setError(""); try { setData(await request("GET")); } catch (err) { showError(err); } finally { setLoading(false); } }
-  async function request(method, body) { const response = await fetch("/api/blueprint", { method, headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` }, body: body && JSON.stringify(body) }); const result = await response.json(); if (!response.ok) throw new Error(result.error); return result; }
+  async function request(method, body) { const response = await fetch("/api/blueprint", { method, cache: "no-store", headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` }, body: body && JSON.stringify(body) }); const result = await response.json(); if (!response.ok) throw new Error(result.error); return result; }
   async function act(body) { setBusy(true); setError(""); try { const next = await request("POST", body); setData(next); setAnswer(""); setAdjustment(""); setAdjusting(false); } catch (err) { showError(err); } finally { setBusy(false); } }
   async function openWorkshop(atelierNumber) { setBusy(true); setError(""); try { const next = await request("POST", { action: "edit_workshop", atelierNumber }); setData(next); setEditAnswers(next.state.answers.map(item => item.rawAnswer)); setShowWorkshops(false); } catch (err) { showError(err); } finally { setBusy(false); } }
   async function saveEdit() { await act({ action: "save_edit", answers: editAnswers.map((value, index) => ({ questionNumber: index + 1, answer: value })) }); }
@@ -37,7 +37,7 @@ export default function Blueprint() {
   if (!data) return <main style={shell}><div style={{ ...card, textAlign: "center" }}><h1>Creator Blueprint</h1><p role="alert" style={{ color: "#fca5a5" }}>{error || "Nu am putut încărca progresul."}</p><button onClick={load} style={button}>Încearcă din nou</button><br /><a href="/" style={{ display: "inline-block", color: "#a78bfa", marginTop: 28 }}>← Înapoi la EWA AI</a></div></main>;
   const { content, state } = data; const atelier = content.ateliers[state.currentAtelier - 1];
   const questionNumber = Math.min(state.currentQuestion, atelier.questions.length); const allAnswered = state.answers.filter(item => item.rawAnswer).length === atelier.questions.length;
-  if (!data.entitled) return <main style={shell}><div style={card}>
+  if (data.entitled !== true) return <main style={shell}><div style={card}>
     <div style={{ color: "#a78bfa", letterSpacing: 1.5, fontSize: 13 }}>EWA · CREATOR BLUEPRINT</div>
     <h1>Abonament Founder necesar</h1>
     <p style={{ color: "#ddd6fe", lineHeight: 1.8 }}>{data.hasBlueprint ? "Blueprint-ul tău existent rămâne disponibil doar pentru citire. Reactivează abonamentul Founder pentru a răspunde, genera sau edita." : "Creator Blueprint este disponibil cu un abonament Founder activ."}</p>

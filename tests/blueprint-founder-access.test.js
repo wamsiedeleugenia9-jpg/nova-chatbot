@@ -18,15 +18,24 @@ test("an unsubscribed new user cannot create or mutate Blueprint data", () => {
   const mutationSetup = api.indexOf("records = await ensure(client, user.id, records);", denial);
   assert.ok(denial > -1 && mutationSetup > denial, "POST denial must precede every mutation/setup path");
   assert.match(api, /if \(authorization\.allowed\) records = await ensure/);
-  assert.match(page, /if \(!data\.entitled\)[\s\S]*Abonament Founder necesar/);
+  assert.match(page, /if \(data\.entitled !== true\)[\s\S]*Abonament Founder necesar/);
   assert.match(page, /data\.hasBlueprint \? "Blueprint-ul tău existent rămâne disponibil doar pentru citire/);
 });
 
 test("an unsubscribed existing Blueprint is loaded but exposed read-only", () => {
   assert.match(api, /let records = await load\(client, user\.id\);[\s\S]*if \(req\.method === "GET"\)/);
-  const readOnly = page.match(/if \(!data\.entitled\) return ([\s\S]*?)return <main style=\{shell\}><div style=\{card\}>/)[1];
+  const readOnly = page.match(/if \(data\.entitled !== true\) return ([\s\S]*?)return <main style=\{shell\}><div style=\{card\}>/)[1];
   assert.match(readOnly, /data\.hasBlueprint/);
   for (const mutation of ["act(", "openWorkshop(", "saveEdit("]) assert.doesNotMatch(readOnly, new RegExp(mutation.replace("(", "\\(")));
+  assert.doesNotMatch(readOnly, /<textarea|>Continuă</);
+  assert.match(readOnly, /state\.answers\.map/);
+});
+
+test("unfinished Blueprint entitlement responses cannot be reused after a subscription expires", () => {
+  assert.match(api, /Cache-Control", "private, no-store, max-age=0"/);
+  assert.match(api, /responsePayload\(records, authorization\.allowed === true\)/);
+  assert.match(page, /fetch\("\/api\/blueprint", \{ method, cache: "no-store"/);
+  assert.match(page, /if \(data\.entitled !== true\) return/);
 });
 
 test("Blueprint persistence queries remain scoped to the authenticated user", () => {

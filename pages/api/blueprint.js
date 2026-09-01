@@ -121,6 +121,9 @@ async function generateCreatorDna(records) {
 
 export default async function handler(req, res) {
   if (!["GET", "POST"].includes(req.method)) { res.setHeader("Allow", "GET, POST"); return res.status(405).json({ error: "Metoda nu este permisă." }); }
+  // Entitlement can change while a browser session remains active. Never let a
+  // browser or intermediary reuse a Blueprint response carrying an old value.
+  res.setHeader("Cache-Control", "private, no-store, max-age=0");
   let auth;
   try { auth = await authenticatedClient(req); } catch (error) { console.error(error); return res.status(500).json({ error: "Serviciul nu este configurat." }); }
   if (!auth) return res.status(401).json({ error: "Autentificare necesară." });
@@ -136,7 +139,7 @@ export default async function handler(req, res) {
     // initial page load create an empty Blueprint or its section rows.
     if (req.method === "GET") {
       if (authorization.allowed) records = await ensure(client, user.id, records);
-      return res.status(200).json(responsePayload(records, authorization.allowed));
+      return res.status(200).json(responsePayload(records, authorization.allowed === true));
     }
     records = await ensure(client, user.id, records);
     const action = req.body?.action;
