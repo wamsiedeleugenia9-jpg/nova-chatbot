@@ -87,8 +87,14 @@ async function ensure(client, userId, records) {
   return load(client, userId);
 }
 
-function responsePayload(records) {
-  return { content: CONTENT, state: blueprintState(records.blueprint, records.sections, records.answers), creatorDna: records.creatorDna?.sections || null };
+function responsePayload(records, entitled) {
+  return {
+    content: CONTENT,
+    state: blueprintState(records.blueprint, records.sections, records.answers),
+    creatorDna: records.creatorDna?.sections || null,
+    entitled,
+    hasBlueprint: Boolean(records.blueprint)
+  };
 }
 
 async function updateBlueprint(client, userId, values) {
@@ -115,19 +121,27 @@ async function generateCreatorDna(records) {
 
 export default async function handler(req, res) {
   if (!["GET", "POST"].includes(req.method)) { res.setHeader("Allow", "GET, POST"); return res.status(405).json({ error: "Metoda nu este permisă." }); }
+  // Entitlement can change while a browser session remains active. Never let a
+  // browser or intermediary reuse a Blueprint response carrying an old value.
+  res.setHeader("Cache-Control", "private, no-store, max-age=0");
   let auth;
   try { auth = await authenticatedClient(req); } catch (error) { console.error(error); return res.status(500).json({ error: "Serviciul nu este configurat." }); }
   if (!auth) return res.status(401).json({ error: "Autentificare necesară." });
   const { client, user } = auth;
-  if (req.method === "POST") {
-    try {
-      const authorization = await authorizeFounder(auth);
-      if (!authorization.allowed) return res.status(403).json({ error: "subscription_required" });
-    } catch (error) { console.error(error); return res.status(500).json({ error: "Serviciul nu este configurat." }); }
-  }
+  let authorization;
   try {
-    let records = await ensure(client, user.id, await load(client, user.id));
-    if (req.method === "GET") return res.status(200).json(responsePayload(records));
+    authorization = await authorizeFounder(auth);
+  } catch (error) { console.error(error); return res.status(500).json({ error: "Serviciul nu este configurat." }); }
+  if (req.method === "POST" && !authorization.allowed) return res.status(403).json({ error: "subscription_required" });
+  try {
+    let records = await load(client, user.id);
+    // GET remains read-only for former Founders. In particular, do not let the
+    // initial page load create an empty Blueprint or its section rows.
+    if (req.method === "GET") {
+      if (authorization.allowed) records = await ensure(client, user.id, records);
+      return res.status(200).json(responsePayload(records, authorization.allowed === true));
+    }
+    records = await ensure(client, user.id, records);
     const action = req.body?.action;
     const atelierNumber = records.blueprint?.current_atelier || 1;
     const atelier = CONTENT.ateliers[atelierNumber - 1];
@@ -248,7 +262,7 @@ export default async function handler(req, res) {
     } else return res.status(400).json({ error: "Acțiune necunoscută." });
 
     records = await load(client, user.id);
-    return res.status(200).json({ ...responsePayload(records), paused: action === "pause" });
+    return res.status(200).json({ ...responsePayload(records, true), paused: action === "pause" });
   } catch (error) {
     console.error("Blueprint API error:", error);
     return res.status(500).json({ error: persistenceErrorMessage(req.method) });
