@@ -1,5 +1,6 @@
 import { authenticatedClient } from "../../../lib/server/supabase";
-import { founderCheckoutParams } from "../../../lib/server/checkout";
+import { founderCheckoutIdempotencyKey, founderCheckoutParams } from "../../../lib/server/checkout";
+import { authorizeFounder } from "../../../lib/server/founderAccess";
 import { getStripe } from "../../../lib/server/stripe";
 
 export default async function handler(req, res) {
@@ -18,7 +19,20 @@ export default async function handler(req, res) {
   if (!auth) return res.status(401).json({ error: "Autentificare necesara." });
 
   try {
-    const session = await getStripe().checkout.sessions.create(founderCheckoutParams(auth.user));
+    const authorization = await authorizeFounder(auth);
+    if (authorization.allowed === true) return res.status(409).json({ error: "subscription_already_active" });
+
+    const { data: previousSubscription, error: subscriptionError } = await auth.client
+      .from("stripe_subscriptions")
+      .select("stripe_subscription_id")
+      .eq("user_id", auth.user.id)
+      .maybeSingle();
+    if (subscriptionError) throw subscriptionError;
+
+    const session = await getStripe().checkout.sessions.create(
+      founderCheckoutParams(auth.user),
+      { idempotencyKey: founderCheckoutIdempotencyKey(auth.user.id, previousSubscription?.stripe_subscription_id) }
+    );
     if (!session.url) throw new Error("Stripe Checkout Session has no URL");
     return res.status(200).json({ url: session.url });
   } catch (error) {

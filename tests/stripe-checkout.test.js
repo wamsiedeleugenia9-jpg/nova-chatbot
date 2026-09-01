@@ -56,6 +56,34 @@ test("Checkout endpoint requires Supabase authentication and POST", () => {
   assert.match(route, /if \(!auth\) return res\.status\(401\)/);
 });
 
+test("Checkout rejects current Founders before creating a Stripe session", () => {
+  const authorization = route.indexOf("await authorizeFounder(auth)");
+  const denial = route.indexOf('authorization.allowed === true', authorization);
+  const creation = route.indexOf("checkout.sessions.create", denial);
+  assert.ok(authorization > -1 && denial > authorization && creation > denial);
+  assert.match(route, /status\(409\)\.json\(\{ error: "subscription_already_active" \}\)/);
+});
+
+test("Checkout creation is idempotent for each subscription lifecycle", () => {
+  const previousOrigin = process.env.EWA_APP_ORIGIN;
+  const previousPrice = process.env.STRIPE_FOUNDER_PRICE_ID;
+  process.env.EWA_APP_ORIGIN = "https://ewa.example";
+  process.env.STRIPE_FOUNDER_PRICE_ID = "price_founder_server";
+  try {
+    const { founderCheckoutIdempotencyKey } = loadCheckoutHelper();
+    assert.equal(founderCheckoutIdempotencyKey("user-1"), "founder-checkout:user-1:initial");
+    assert.equal(founderCheckoutIdempotencyKey("user-1", "sub_expired"), "founder-checkout:user-1:sub_expired");
+    assert.notEqual(founderCheckoutIdempotencyKey("user-1"), founderCheckoutIdempotencyKey("user-2"));
+    assert.match(route, /select\("stripe_subscription_id"\)[\s\S]*\.eq\("user_id", auth\.user\.id\)/);
+    assert.match(route, /\{ idempotencyKey: founderCheckoutIdempotencyKey\(auth\.user\.id, previousSubscription\?\.stripe_subscription_id\) \}/);
+  } finally {
+    if (previousOrigin === undefined) delete process.env.EWA_APP_ORIGIN;
+    else process.env.EWA_APP_ORIGIN = previousOrigin;
+    if (previousPrice === undefined) delete process.env.STRIPE_FOUNDER_PRICE_ID;
+    else process.env.STRIPE_FOUNDER_PRICE_ID = previousPrice;
+  }
+});
+
 test("Founder Checkout is fixed server-side with subscription mode and one item", () => {
   assert.match(checkoutHelper, /process\.env\.STRIPE_FOUNDER_PRICE_ID/);
   assert.match(checkoutHelper, /mode: "subscription"/);
