@@ -22,15 +22,18 @@ export default async function handler(req, res) {
     const authorization = await authorizeFounder(auth);
     if (authorization.allowed === true) return res.status(409).json({ error: "subscription_already_active" });
 
-    const { data: previousSubscription, error: subscriptionError } = await auth.client
+    const { data: previousSubscriptions, error: subscriptionError } = await auth.client
       .from("stripe_subscriptions")
-      .select("stripe_subscription_id")
+      .select("stripe_subscription_id,stripe_customer_id")
       .eq("user_id", auth.user.id)
-      .maybeSingle();
+      .order("last_stripe_event_created", { ascending: false })
+      .order("last_stripe_event_id", { ascending: false })
+      .limit(1);
     if (subscriptionError) throw subscriptionError;
+    const previousSubscription = previousSubscriptions?.[0];
 
     const session = await getStripe().checkout.sessions.create(
-      founderCheckoutParams(auth.user),
+      founderCheckoutParams(auth.user, previousSubscription?.stripe_customer_id),
       { idempotencyKey: founderCheckoutIdempotencyKey(auth.user.id, previousSubscription?.stripe_subscription_id) }
     );
     if (!session.url) throw new Error("Stripe Checkout Session has no URL");
