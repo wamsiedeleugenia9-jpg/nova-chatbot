@@ -7,7 +7,7 @@ const { spawnSync } = require("node:child_process");
 
 const root = join(__dirname, "..");
 process.env.STRIPE_FOUNDER_PRICE_ID = "price_founder";
-const { isFounderSubscriptionEntitled } = require("../lib/server/founderEntitlement");
+const { evaluateFounderEntitlement, isFounderSubscriptionEntitled } = require("../lib/server/founderEntitlement");
 const { synchronizeFounderSubscription, trustedUserId } = require("../lib/server/stripeSubscriptions");
 
 const userId = "11111111-1111-4111-8111-111111111111";
@@ -98,6 +98,22 @@ test("only active Founder access within its paid period is entitled", () => {
   assert.equal(isFounderSubscriptionEntitled({ ...base, stripe_price_id: "price_browser_supplied" }, now), false);
 });
 
+test("any active Founder subscription grants access when a user has multiple subscriptions", async () => {
+  const rows = [
+    { stripe_price_id: "price_founder", status: "canceled", current_period_end: "2026-08-01T00:00:00Z" },
+    { stripe_price_id: "price_founder", status: "active", current_period_end: "2026-10-01T00:00:00Z" }
+  ];
+  const query = {
+    select() { return this; },
+    eq: async () => ({ data: rows, error: null })
+  };
+  const client = { from: table => { assert.equal(table, "stripe_subscriptions"); return query; } };
+
+  assert.equal(await evaluateFounderEntitlement(client, userId, new Date("2026-09-01T00:00:00Z")), true);
+  rows[1].status = "canceled";
+  assert.equal(await evaluateFounderEntitlement(client, userId, new Date("2026-09-01T00:00:00Z")), false);
+});
+
 test("synchronization validates Founder price and trusted subscription metadata", async () => {
   const calls = [];
   const client = { rpc: async (name, payload) => { calls.push([name, payload]); return { data: true, error: null }; } };
@@ -145,6 +161,15 @@ test("duplicate and stale events are rejected atomically by the database migrati
   assert.match(migration, /on conflict \(user_id\) do update/);
   assert.match(migration, /last_stripe_event_created,[\s\S]*last_stripe_event_id\)[\s\S]*< \(excluded\.last_stripe_event_created, excluded\.last_stripe_event_id\)/);
   assert.match(migration, /revoke all on function[\s\S]*from public, anon, authenticated/);
+});
+
+test("projection orders events independently for every Stripe subscription ID", () => {
+  const migration = readFileSync(join(root, "supabase/migrations/20260902000000_project_each_stripe_subscription.sql"), "utf8");
+  assert.match(migration, /primary key \(stripe_subscription_id\)/);
+  assert.match(migration, /create index stripe_subscriptions_user_id_idx[\s\S]*\(user_id\)/);
+  assert.match(migration, /on conflict \(stripe_subscription_id\) do update/);
+  assert.match(migration, /last_stripe_event_created,[\s\S]*last_stripe_event_id\)[\s\S]*< \(excluded\.last_stripe_event_created, excluded\.last_stripe_event_id\)/);
+  assert.doesNotMatch(migration, /unique \(stripe_customer_id\)/);
 });
 
 test("webhook preserves raw body, verifies signatures first, and supports lifecycle events", () => {

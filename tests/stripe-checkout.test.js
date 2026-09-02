@@ -64,6 +64,14 @@ test("Checkout rejects current Founders before creating a Stripe session", () =>
   assert.match(route, /status\(409\)\.json\(\{ error: "subscription_already_active" \}\)/);
 });
 
+test("an unsubscribed authenticated user can create a Checkout Session", () => {
+  const authentication = route.indexOf("if (!auth) return res.status(401)");
+  const activeOnlyConflict = route.indexOf("authorization.allowed === true", authentication);
+  const creation = route.indexOf("checkout.sessions.create", activeOnlyConflict);
+  assert.ok(authentication > -1 && activeOnlyConflict > authentication && creation > activeOnlyConflict);
+  assert.doesNotMatch(route.slice(activeOnlyConflict, creation), /authorization\.allowed === false[\s\S]*return/);
+});
+
 test("Checkout creation is idempotent for each subscription lifecycle", () => {
   const previousOrigin = process.env.EWA_APP_ORIGIN;
   const previousPrice = process.env.STRIPE_FOUNDER_PRICE_ID;
@@ -74,7 +82,8 @@ test("Checkout creation is idempotent for each subscription lifecycle", () => {
     assert.equal(founderCheckoutIdempotencyKey("user-1"), "founder-checkout:user-1:initial");
     assert.equal(founderCheckoutIdempotencyKey("user-1", "sub_expired"), "founder-checkout:user-1:sub_expired");
     assert.notEqual(founderCheckoutIdempotencyKey("user-1"), founderCheckoutIdempotencyKey("user-2"));
-    assert.match(route, /select\("stripe_subscription_id"\)[\s\S]*\.eq\("user_id", auth\.user\.id\)/);
+    assert.match(route, /select\("stripe_subscription_id,stripe_customer_id"\)[\s\S]*\.eq\("user_id", auth\.user\.id\)/);
+    assert.match(route, /\.order\("last_stripe_event_created", \{ ascending: false \}\)[\s\S]*\.limit\(1\)/);
     assert.match(route, /\{ idempotencyKey: founderCheckoutIdempotencyKey\(auth\.user\.id, previousSubscription\?\.stripe_subscription_id\) \}/);
   } finally {
     if (previousOrigin === undefined) delete process.env.EWA_APP_ORIGIN;
@@ -120,6 +129,13 @@ test("Founder parameters ignore browser input and use authenticated identity and
     assert.equal(params.subscription_data.metadata.ewa_user_id, "auth-user-123");
     assert.equal(params.success_url, "https://ewa.example/?checkout=success");
     assert.equal(params.cancel_url, "https://ewa.example/?checkout=cancelled");
+
+    const returningParams = founderCheckoutParams(
+      { id: "auth-user-123", email: "user@example.com" },
+      "cus_existing"
+    );
+    assert.equal(returningParams.customer, "cus_existing");
+    assert.equal("customer_email" in returningParams, false);
   } finally {
     if (previousOrigin === undefined) delete process.env.EWA_APP_ORIGIN;
     else process.env.EWA_APP_ORIGIN = previousOrigin;
