@@ -15,6 +15,7 @@ import {
 } from "../../lib/chat/workingMemory";
 import { EWA_CORE_BEHAVIOR } from "../../lib/prompts/ewaCoreBehavior";
 import { loadChatContext, loadChatHistory, saveChatExchange } from "../../lib/chat/history";
+import { AI_FEATURES, recordAnthropicUsage } from "../../lib/server/aiUsage";
 
 const SYSTEM_PROMPT = `${EWA_CORE_BEHAVIOR}
 
@@ -192,6 +193,7 @@ export default async function handler(req, res) {
     }
 
     const data = await anthropicRes.json();
+    await recordAnthropicUsage({ userId: auth.user.id, feature: AI_FEATURES.CHAT, response: data });
     const reply = data.content?.[0]?.text || "Nu am putut genera un raspuns. Incearca din nou.";
 
     try {
@@ -221,6 +223,7 @@ export default async function handler(req, res) {
           console.error("Extractia Working Memory a esuat:", extractionRes.status);
         } else {
           const extractionData = await extractionRes.json();
+          await recordAnthropicUsage({ userId: auth.user.id, feature: AI_FEATURES.MEMORY, response: extractionData });
           const extractionText = extractionData.content?.[0]?.text;
           // This text is emitted under Anthropic's strict json_schema output
           // contract; local validation remains mandatory before persistence.
