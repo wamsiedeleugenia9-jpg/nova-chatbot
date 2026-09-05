@@ -54,7 +54,7 @@ test("edit API regenerates the affected summary and Creator DNA, while reset req
   const api = readFileSync(join(__dirname, "..", "pages", "api", "blueprint.js"), "utf8");
   assert.match(api, /action === "edit_workshop"/);
   assert.match(api, /action === "save_edit"[\s\S]*sectionSummaryPrompt\(\{ atelier, answers: submitted \}\)/);
-  assert.match(api, /const preparedAnswers = \[\][\s\S]*generateCreatorDna\(latestRecords\)[\s\S]*client\.rpc\("save_blueprint_workshop_edit"/);
+  assert.match(api, /const preparedAnswers = \[\][\s\S]*generateCreatorDna\(latestRecords, user\.id\)[\s\S]*client\.rpc\("save_blueprint_workshop_edit"/);
   assert.doesNotMatch(api.match(/action === "save_edit"([\s\S]*?)action === "cancel_edit"/)[1], /from\("blueprint_answers"\)\.upsert/);
   assert.match(api, /records\.blueprint\?\.status === BLUEPRINT_STATUS\.COMPLETED[\s\S]*regenerateCreatorDna/);
   assert.match(api, /action === "reset"[\s\S]*req\.body\?\.confirm !== true/);

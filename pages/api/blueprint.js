@@ -5,6 +5,7 @@ const { summaryRequestOptions, summaryWithRetry } = require("../../lib/blueprint
 const { appendWhy, creatorDnaFromResponse, creatorDnaRequestOptions, creatorDnaResponseDiagnostics } = require("../../lib/blueprint/creatorDnaResponse");
 const { authenticatedClient } = require("../../lib/server/supabase");
 const { authorizeFounder } = require("../../lib/server/founderAccess");
+const { AI_FEATURES, recordAnthropicUsage } = require("../../lib/server/aiUsage");
 
 const MAX_ANSWER_LENGTH = 8000;
 const MAX_ADJUSTMENT_LENGTH = 2000;
@@ -15,7 +16,7 @@ function persistenceErrorMessage(method) {
     : "Nu am putut salva progresul. Încearcă din nou.";
 }
 
-async function askClaude(prompt, json = false) {
+async function askClaude(prompt, json, telemetry) {
   if (!process.env.ANTHROPIC_API_KEY) throw new Error("Anthropic server configuration is missing");
   const request = async maxTokens => {
     const response = await fetch("https://api.anthropic.com/v1/messages", {
@@ -30,7 +31,9 @@ async function askClaude(prompt, json = false) {
       })
     });
     if (!response.ok) { console.error("Blueprint Anthropic error:", response.status, await response.text()); throw new Error("Anthropic request failed"); }
-    return response.json();
+    const payload = await response.json();
+    await recordAnthropicUsage({ userId: telemetry.userId, feature: telemetry.feature, response: payload });
+    return payload;
   };
   if (json) return summaryWithRetry(request, diagnostics => {
     // Structure only: never log the generated summary or workshop answers.
@@ -42,7 +45,7 @@ async function askClaude(prompt, json = false) {
   return text;
 }
 
-async function askCreatorDna(prompt) {
+async function askCreatorDna(prompt, userId) {
   if (!process.env.ANTHROPIC_API_KEY) throw new Error("Anthropic server configuration is missing");
   const response = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -51,6 +54,7 @@ async function askCreatorDna(prompt) {
   });
   if (!response.ok) { console.error("Creator DNA Anthropic error:", response.status, await response.text()); throw new Error("Anthropic request failed"); }
   const payload = await response.json();
+  await recordAnthropicUsage({ userId, feature: AI_FEATURES.CREATOR_DNA, response: payload });
   try {
     return creatorDnaFromResponse(payload);
   } catch (error) {
@@ -108,14 +112,14 @@ async function updateSection(client, userId, atelier, values) {
 }
 
 async function regenerateCreatorDna(client, userId, records) {
-  const sections = await generateCreatorDna(records);
+  const sections = await generateCreatorDna(records, userId);
   const saved = await client.from("creator_dna").upsert({ user_id: userId, sections, updated_at: new Date().toISOString() }, { onConflict: "user_id" });
   if (saved.error) throw saved.error;
 }
 
-async function generateCreatorDna(records) {
+async function generateCreatorDna(records, userId) {
   const why = records.answers.find(item => item.atelier_number === 8 && item.question_number === 1)?.raw_answer;
-  const generated = await askCreatorDna(creatorDnaPrompt({ sections: records.sections.filter(item => item.atelier_number <= 7), answers: records.answers.filter(item => item.atelier_number <= 7) }));
+  const generated = await askCreatorDna(creatorDnaPrompt({ sections: records.sections.filter(item => item.atelier_number <= 7), answers: records.answers.filter(item => item.atelier_number <= 7) }), userId);
   return appendWhy(generated, why);
 }
 
@@ -165,12 +169,12 @@ export default async function handler(req, res) {
       const changed = changedWorkshopAnswers(atelierAnswers, submitted);
       const preparedAnswers = [];
       for (const item of changed) {
-        const interpretation = atelierNumber === 8 ? item.rawAnswer : await askClaude(answerInterpretationPrompt({ question: atelier.questions[item.questionNumber - 1], answer: item.rawAnswer }));
+        const interpretation = atelierNumber === 8 ? item.rawAnswer : await askClaude(answerInterpretationPrompt({ question: atelier.questions[item.questionNumber - 1], answer: item.rawAnswer }), false, { userId: user.id, feature: AI_FEATURES.BLUEPRINT_INTERPRETATION });
         preparedAnswers.push({ question_number: item.questionNumber, raw_answer: item.rawAnswer, interpreted_answer: interpretation });
       }
       const summary = atelierNumber === 8
         ? { summary: submitted[0].rawAnswer, keyElements: [] }
-        : await askClaude(sectionSummaryPrompt({ atelier, answers: submitted }), true);
+        : await askClaude(sectionSummaryPrompt({ atelier, answers: submitted }), true, { userId: user.id, feature: AI_FEATURES.BLUEPRINT_SUMMARY });
       const submittedByQuestion = new Map(submitted.map(item => [item.questionNumber, item.rawAnswer]));
       const preparedByQuestion = new Map(preparedAnswers.map(item => [item.question_number, item]));
       const latestRecords = {
@@ -182,7 +186,7 @@ export default async function handler(req, res) {
           ? { ...item, interpreted_summary: summary.summary, key_elements: summary.keyElements }
           : item)
       };
-      const creatorDnaSections = await generateCreatorDna(latestRecords);
+      const creatorDnaSections = await generateCreatorDna(latestRecords, user.id);
       const saved = await client.rpc("save_blueprint_workshop_edit", {
         p_atelier_number: atelierNumber,
         p_answers: preparedAnswers,
@@ -203,7 +207,7 @@ export default async function handler(req, res) {
       let expectedQuestion = 1;
       while (answeredQuestions.has(expectedQuestion)) expectedQuestion += 1;
       if (questionNumber !== expectedQuestion) return res.status(409).json({ error: "Răspunde la întrebarea curentă înainte să continui." });
-      const interpretation = atelierNumber === 8 ? answer : await askClaude(answerInterpretationPrompt({ question: atelier.questions[questionNumber - 1], answer }));
+      const interpretation = atelierNumber === 8 ? answer : await askClaude(answerInterpretationPrompt({ question: atelier.questions[questionNumber - 1], answer }), false, { userId: user.id, feature: AI_FEATURES.BLUEPRINT_INTERPRETATION });
       const saved = await client.from("blueprint_answers").upsert({ user_id: user.id, atelier_number: atelierNumber, question_number: questionNumber, raw_answer: answer, interpreted_answer: interpretation, adjustment_request: null, updated_at: new Date().toISOString() }, { onConflict: "user_id,atelier_number,question_number" });
       if (saved.error) throw saved.error;
       await updateBlueprint(client, user.id, { status: BLUEPRINT_STATUS.IN_PROGRESS });
@@ -212,7 +216,7 @@ export default async function handler(req, res) {
         const completeAnswers = [...atelierAnswers.filter(item => item.question_number !== questionNumber), { questionNumber, rawAnswer: answer }].map(item => ({ questionNumber: item.questionNumber || item.question_number, rawAnswer: item.rawAnswer || item.raw_answer })).sort((a, b) => a.questionNumber - b.questionNumber);
         const summary = atelierNumber === 8
           ? { summary: answer, keyElements: [] }
-          : await askClaude(sectionSummaryPrompt({ atelier, answers: completeAnswers }), true);
+          : await askClaude(sectionSummaryPrompt({ atelier, answers: completeAnswers }), true, { userId: user.id, feature: AI_FEATURES.BLUEPRINT_SUMMARY });
         await updateSection(client, user.id, atelierNumber, { interpreted_summary: summary.summary, key_elements: summary.keyElements, status: SECTION_STATUS.IN_PROGRESS });
       }
     } else if (action === "adjust") {
@@ -221,14 +225,14 @@ export default async function handler(req, res) {
       if (!section?.interpreted_summary) return res.status(409).json({ error: "Nu există un rezumat de ajustat." });
       if (!adjustment || adjustment.length > MAX_ADJUSTMENT_LENGTH) return res.status(400).json({ error: "Ajustarea nu este validă." });
       const answers = atelierAnswers.map(item => ({ questionNumber: item.question_number, rawAnswer: item.raw_answer }));
-      const summary = await askClaude(sectionSummaryPrompt({ atelier, answers, currentSummary: section.interpreted_summary, adjustment }), true);
+      const summary = await askClaude(sectionSummaryPrompt({ atelier, answers, currentSummary: section.interpreted_summary, adjustment }), true, { userId: user.id, feature: AI_FEATURES.BLUEPRINT_SUMMARY });
       await updateSection(client, user.id, atelierNumber, { interpreted_summary: summary.summary, key_elements: summary.keyElements, status: SECTION_STATUS.REVIEW, confirmed_at: null });
     } else if (action === "summarize") {
       if (atelierAnswers.filter(item => item.raw_answer).length !== atelier.questions.length) return res.status(409).json({ error: "Finalizează toate întrebările înainte de rezumat." });
       const answers = atelierAnswers.map(item => ({ questionNumber: item.question_number, rawAnswer: item.raw_answer }));
       const summary = atelierNumber === 8
         ? { summary: answers[0].rawAnswer, keyElements: [] }
-        : await askClaude(sectionSummaryPrompt({ atelier, answers }), true);
+        : await askClaude(sectionSummaryPrompt({ atelier, answers }), true, { userId: user.id, feature: AI_FEATURES.BLUEPRINT_SUMMARY });
       await updateSection(client, user.id, atelierNumber, { interpreted_summary: summary.summary, key_elements: summary.keyElements, status: SECTION_STATUS.IN_PROGRESS, confirmed_at: null });
     } else if (action === "confirm") {
       if (!section?.interpreted_summary) return res.status(409).json({ error: "Nu există un rezumat de confirmat." });
