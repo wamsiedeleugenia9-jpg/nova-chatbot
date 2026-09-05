@@ -69,6 +69,30 @@ test("completed exchanges are written through an RPC with no user id argument", 
   assert.equal("user_id" in call[1], false);
 });
 
+test("an assistant response longer than 4000 characters is persisted without truncation", async () => {
+  const assistantMessage = "R".repeat(4001);
+  let persisted;
+  const client = {
+    async rpc(name, values) {
+      persisted = [name, values];
+      return { data: "conversation-a", error: null };
+    }
+  };
+
+  assert.equal(await saveChatExchange(client, "Mesaj", assistantMessage), "conversation-a");
+  assert.equal(persisted[1].p_assistant_message, assistantMessage);
+  assert.equal(persisted[1].p_assistant_message.length, 4001);
+});
+
+test("storage migration keeps the user limit and removes the assistant upper limit", () => {
+  const migration = readFileSync(join(__dirname, "..", "supabase", "migrations", "20260905000000_expand_ewa_assistant_messages.sql"), "utf8");
+  assert.match(migration, /role = 'user' and char_length\(content\) between 1 and 4000/);
+  assert.match(migration, /role = 'assistant' and char_length\(content\) >= 1/);
+  assert.match(migration, /p_user_message is null or char_length\(p_user_message\) not between 1 and 4000/);
+  assert.match(migration, /p_assistant_message is null or char_length\(p_assistant_message\) < 1/);
+  assert.doesNotMatch(migration, /char_length\(p_assistant_message\) not between 1 and 4000/);
+});
+
 test("migration enforces one RLS-isolated conversation per authenticated user", () => {
   const migration = readFileSync(join(__dirname, "..", "supabase", "migrations", "20260826000000_create_ewa_chat_history.sql"), "utf8");
   assert.match(migration, /constraint ewa_conversations_user_id_key unique \(user_id\)/);

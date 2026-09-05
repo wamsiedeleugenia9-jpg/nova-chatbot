@@ -78,7 +78,9 @@ Continutul Creator Blueprint este pastrat in `content/creator-blueprint.json`.
 Conversatia EWA din versiunea web este pastrata in Supabase, cate una pentru
 fiecare utilizator autentificat. Aplicati migratia
 `supabase/migrations/20260826000000_create_ewa_chat_history.sql` inainte de
-publicarea codului care restaureaza istoricul. Tabelele `ewa_conversations` si
+publicarea codului care restaureaza istoricul, apoi migratia
+`supabase/migrations/20260905000000_expand_ewa_assistant_messages.sql` pentru a
+permite salvarea integrala a raspunsurilor EWA generate. Tabelele `ewa_conversations` si
 `ewa_messages` sunt protejate prin RLS si nu acorda administratorilor acces la
 conversatiile altor utilizatori.
 
