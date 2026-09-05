@@ -2,7 +2,7 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const { readFileSync } = require("node:fs");
 const { join } = require("node:path");
-const { loadChatContext, loadChatHistory, saveChatExchange } = require("../lib/chat/history");
+const { claimChatRequest, completeChatRequest, loadChatContext, loadChatHistory } = require("../lib/chat/history");
 
 function conversationClient(conversation, messages) {
   const observed = [];
@@ -61,11 +61,13 @@ test("Anthropic context uses the latest persisted messages in chronological orde
   assert.ok(observed.some(item => item[0] === "ewa_messages" && item[1] === "limit" && item[2] === 39));
 });
 
-test("completed exchanges are written through an RPC with no user id argument", async () => {
+test("logical requests are claimed and completed through RPCs with no user id argument", async () => {
   let call;
   const client = { async rpc(name, values) { call = [name, values]; return { data: "conversation-a", error: null }; } };
-  assert.equal(await saveChatExchange(client, "Mesaj", "Raspuns"), "conversation-a");
-  assert.deepEqual(call, ["save_ewa_chat_exchange", { p_user_message: "Mesaj", p_assistant_message: "Raspuns" }]);
+  assert.equal(await claimChatRequest(client, "request-a", "Mesaj"), "conversation-a");
+  assert.deepEqual(call, ["claim_ewa_chat_request", { p_request_id: "request-a", p_user_message: "Mesaj" }]);
+  assert.equal(await completeChatRequest(client, "request-a", "Mesaj", "Raspuns"), "conversation-a");
+  assert.deepEqual(call, ["complete_ewa_chat_request", { p_request_id: "request-a", p_user_message: "Mesaj", p_assistant_message: "Raspuns" }]);
   assert.equal("user_id" in call[1], false);
 });
 
@@ -79,7 +81,7 @@ test("an assistant response longer than 4000 characters is persisted without tru
     }
   };
 
-  assert.equal(await saveChatExchange(client, "Mesaj", assistantMessage), "conversation-a");
+  assert.equal(await completeChatRequest(client, "request-a", "Mesaj", assistantMessage), "conversation-a");
   assert.equal(persisted[1].p_assistant_message, assistantMessage);
   assert.equal(persisted[1].p_assistant_message.length, 4001);
 });
@@ -124,9 +126,10 @@ test("web API loads canonical history and accepts only the latest client message
   assert.match(api, /req\.method === "GET"[\s\S]*loadChatHistory\(auth\.client, auth\.user\.id\)/);
   assert.match(api, /loadChatContext\(auth\.client, auth\.user\.id\)/);
   assert.match(api, /messages = \[\.\.\.history, \{ role: "user", content: message \}\]/);
-  assert.match(api, /await saveChatExchange\(auth\.client, message, reply\)/);
+  assert.match(api, /await completeChatRequest\(auth\.client, requestId, message, reply\)/);
   assert.doesNotMatch(api, /const \{ messages \} = req\.body/);
-  assert.match(page, /body: JSON\.stringify\(\{ message: msg \}\)/);
+  assert.match(page, /const requestId = crypto\.randomUUID\(\)/);
+  assert.match(page, /body: JSON\.stringify\(\{ message: msg, requestId \}\)/);
   assert.match(restoreHistory, /messages: history\.messages/);
   assert.match(page, /result\.messages\.length \? result\.messages : \[WELCOME_MESSAGE\]/);
   assert.match(page, /setMessages\(\[\]\);[\s\S]*await supabase\.auth\.signOut\(\)/);

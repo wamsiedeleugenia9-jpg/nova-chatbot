@@ -483,6 +483,9 @@ export default function App() {
   async function send(text) {
     const msg = text || input.trim();
     if (!msg || loading || !accessStatus?.entitled) return;
+    // One id identifies this logical submission for its entire lifetime. Any
+    // transport retry made from this invocation must reuse it.
+    const requestId = crypto.randomUUID();
     const newMsgs = [...messages, { role: "user", content: msg }];
     setMessages(newMsgs);
     setInput("");
@@ -503,7 +506,7 @@ export default function App() {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${accessToken}`
         },
-        body: JSON.stringify({ message: msg })
+        body: JSON.stringify({ message: msg, requestId })
       });
       const data = await res.json();
       if (!res.ok) {
