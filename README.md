@@ -18,8 +18,29 @@ Asistenta AI de marketing digital pentru antreprenori din Romania. Construita cu
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | cheia anon/publishable Supabase folosita de client si de Creator Blueprint |
 | `SUPABASE_URL` | URL-ul proiectului Supabase folosit server-side |
 | `SUPABASE_ANON_KEY` | cheia anon/publishable Supabase folosita server-side. Nu folosi cheia `service_role`. |
+| `SUPABASE_SERVICE_ROLE_KEY` | cheia privilegiata folosita doar de webhook-ul Stripe si reconciliere pentru proiectia abonamentelor |
+| `STRIPE_SECRET_KEY` | cheia Stripe Sandbox folosita doar server-side |
+| `STRIPE_WEBHOOK_SECRET` | secretul de semnare pentru endpoint-ul canonic `https://www.ewaai.ro/api/stripe/webhook` |
+| `STRIPE_FOUNDER_PRICE_ID` | ID-ul server-side al pretului Founder |
+| `STRIPE_RECONCILIATION_SECRET` | secret bearer aleator pentru ruta server-side de reconciliere |
 
 Nu adauga valori reale ale cheilor in repository.
+
+## Reconciliere abonamente Stripe
+
+Stripe ramane sursa de adevar, iar webhook-ul canonic este
+`https://www.ewaai.ro/api/stripe/webhook` (fara redirect). Pentru recuperarea
+unei livrari ratate sau intarziate, un scheduler protejat poate apela periodic:
+
+```sh
+curl -X POST https://www.ewaai.ro/api/stripe/reconcile \
+  -H "Authorization: Bearer $STRIPE_RECONCILIATION_SECRET"
+```
+
+Ruta citeste toate abonamentele istorice Stripe pentru pretul Founder si le
+proiecteaza idempotent prin acelasi RPC folosit de webhook. Nu creeaza Checkout
+Sessions sau abonamente. Un raspuns non-2xx trebuie alertat si reincercat; pentru
+pilot este suficienta programarea externa periodica a acestui apel.
 
 ## Autentificare
 
