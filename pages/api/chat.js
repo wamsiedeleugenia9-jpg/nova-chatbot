@@ -14,7 +14,7 @@ import {
   validateExtraction
 } from "../../lib/chat/workingMemory";
 import { EWA_CORE_BEHAVIOR } from "../../lib/prompts/ewaCoreBehavior";
-import { loadChatContext, loadChatHistory, saveChatExchange } from "../../lib/chat/history";
+import { claimChatRequest, completeChatRequest, loadChatContext, loadChatHistory } from "../../lib/chat/history";
 import { AI_FEATURES, recordAnthropicUsage } from "../../lib/server/aiUsage";
 
 const SYSTEM_PROMPT = `${EWA_CORE_BEHAVIOR}
@@ -59,6 +59,7 @@ function isRateLimited(ip) {
 }
 
 const MAX_MESSAGE_LENGTH = 4000;  // caractere per mesaj
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export default async function handler(req, res) {
   if (!["GET", "POST"].includes(req.method)) {
@@ -104,6 +105,13 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: "Eroare de configurare server. Incearca mai tarziu." });
   }
 
+  const message = typeof req.body?.message === "string" ? req.body.message.trim() : "";
+  const requestId = typeof req.body?.requestId === "string" ? req.body.requestId : "";
+
+  if (!message) return res.status(400).json({ error: "Lipseste mesajul." });
+  if (message.length > MAX_MESSAGE_LENGTH) return res.status(400).json({ error: "Mesajul este prea lung." });
+  if (!UUID_PATTERN.test(requestId)) return res.status(400).json({ error: "requestId invalid." });
+
   // Creator DNA remains server-side. A transient persistence failure must not
   // prevent an otherwise valid chat request from using the existing behavior.
   let creatorDna = null;
@@ -141,15 +149,6 @@ export default async function handler(req, res) {
     return res.status(429).json({ error: "Prea multe cereri. Incearca din nou in cateva momente." });
   }
 
-  const message = typeof req.body?.message === "string" ? req.body.message.trim() : "";
-
-  if (!message) {
-    return res.status(400).json({ error: "Lipseste mesajul." });
-  }
-  if (message.length > MAX_MESSAGE_LENGTH) {
-    return res.status(400).json({ error: "Mesajul este prea lung." });
-  }
-
   let messages;
   try {
     const history = await loadChatContext(auth.client, auth.user.id);
@@ -162,6 +161,24 @@ export default async function handler(req, res) {
   if (!process.env.ANTHROPIC_API_KEY) {
     console.error("ANTHROPIC_API_KEY lipseste din variabilele de mediu.");
     return res.status(500).json({ error: "Eroare de configurare server. Incearca mai tarziu." });
+  }
+
+  // Claim only after all preflight work has succeeded, but before the first
+  // billable call. Processing claims are deliberately never stolen by age.
+  let claim;
+  try {
+    claim = await claimChatRequest(auth.client, requestId, message);
+  } catch (error) {
+    console.error("Eroare la revendicarea cererii EWA:", error);
+    return res.status(500).json({ error: "Nu am putut porni cererea. Incearca din nou." });
+  }
+  if (claim.status === "conflict") {
+    return res.status(409).json({ error: "requestId a fost deja folosit pentru alt mesaj." });
+  }
+  if (claim.status === "completed") return res.status(200).json({ reply: claim.reply });
+  if (claim.status === "processing") {
+    res.setHeader("Retry-After", "3");
+    return res.status(409).json({ error: "Cererea este deja in curs.", retryable: true });
   }
 
   try {
@@ -197,7 +214,7 @@ export default async function handler(req, res) {
     const reply = data.content?.[0]?.text || "Nu am putut genera un raspuns. Incearca din nou.";
 
     try {
-      await saveChatExchange(auth.client, message, reply);
+      await completeChatRequest(auth.client, requestId, message, reply);
     } catch (error) {
       console.error("Eroare la salvarea istoricului EWA:", error);
       return res.status(500).json({ error: "Nu am putut salva conversatia. Incearca din nou." });
