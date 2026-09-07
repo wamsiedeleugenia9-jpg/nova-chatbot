@@ -17,6 +17,7 @@ import { EWA_CORE_BEHAVIOR } from "../../lib/prompts/ewaCoreBehavior";
 import { claimChatRequest, completeChatRequest, loadChatContext, loadChatHistory } from "../../lib/chat/history";
 import { AI_FEATURES, recordAnthropicUsage } from "../../lib/server/aiUsage";
 import { formatMainChatResponse } from "../../lib/chat/mainResponse";
+import { admitAiCall, sendAiAdmissionError } from "../../lib/server/aiRateLimit";
 
 const SYSTEM_PROMPT = `${EWA_CORE_BEHAVIOR}
 
@@ -43,24 +44,6 @@ Poti folosi cadre precum AIDA, PAS, Before/After/Bridge, FAB si PASTOR atunci ca
 
 LIMITA PRODUSULUI
 EWA ramane in sfera businessului, marketingului, continutului, pozitionarii, ofertelor si executiei aferente. Poate folosi intrebari reflective pentru obstacole de actiune, dar nu devine psiholog, terapeut sau diagnostician. Dupa clarificare, readuce conversatia catre business si urmatorul pas concret.`;
-
-// Protectie minima impotriva abuzului: rate limiting in-memory per IP.
-// NOTA: functiile serverless Vercel nu pastreaza memoria intre invocari in mod garantat
-// (fiecare instanta poate avea propriul Map, iar instantele pot fi reciclate oricand).
-// E o plasa de siguranta de bun-simt pentru etapa asta, NU o solutie definitiva.
-// Solutia definitiva (rate limiting real, per user) vine odata cu Supabase Auth,
-// cand putem lega limitele de user_id si status abonament, nu de IP.
-const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minut
-const RATE_LIMIT_MAX_REQUESTS = 15;     // 15 mesaje / minut / IP
-const requestLog = new Map();
-
-function isRateLimited(ip) {
-  const now = Date.now();
-  const timestamps = (requestLog.get(ip) || []).filter(t => now - t < RATE_LIMIT_WINDOW_MS);
-  timestamps.push(now);
-  requestLog.set(ip, timestamps);
-  return timestamps.length > RATE_LIMIT_MAX_REQUESTS;
-}
 
 const MAX_MESSAGE_LENGTH = 4000;  // caractere per mesaj
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -144,15 +127,6 @@ export default async function handler(req, res) {
     console.error("Eroare la incarcarea Working Memory pentru chat:", error);
   }
 
-  const ip =
-    (req.headers["x-forwarded-for"] || "").split(",")[0].trim() ||
-    req.socket?.remoteAddress ||
-    "unknown";
-
-  if (isRateLimited(ip)) {
-    return res.status(429).json({ error: "Prea multe cereri. Incearca din nou in cateva momente." });
-  }
-
   let messages;
   try {
     const history = await loadChatContext(auth.client, auth.user.id);
@@ -174,7 +148,7 @@ export default async function handler(req, res) {
     claim = await claimChatRequest(auth.client, requestId, message);
   } catch (error) {
     console.error("Eroare la revendicarea cererii EWA:", error);
-    return res.status(500).json({ error: "Nu am putut porni cererea. Incearca din nou." });
+    return sendAiAdmissionError(res, error);
   }
   if (claim.status === "conflict") {
     return res.status(409).json({ error: "requestId a fost deja folosit pentru alt mesaj." });
@@ -184,6 +158,10 @@ export default async function handler(req, res) {
     res.setHeader("Retry-After", "3");
     return res.status(409).json({ error: "Cererea este deja in curs.", retryable: true });
   }
+  if (claim.status === "rate_limited") {
+    return sendAiAdmissionError(res, { code: "AI_RATE_LIMITED", retryAfterSeconds: claim.retry_after_seconds });
+  }
+  if (claim.status !== "claimed") return sendAiAdmissionError(res, new Error("Invalid chat claim response"));
 
   try {
     const anthropicRes = await fetch("https://api.anthropic.com/v1/messages", {
@@ -231,6 +209,11 @@ export default async function handler(req, res) {
       try {
         const latestUserMessage = [...messages].reverse().find(message => message.role === "user")?.content;
         if (latestUserMessage) {
+          const admission = await admitAiCall(auth.client);
+          if (admission.status !== "allowed") {
+            console.error("Extractia Working Memory a fost omisa: admiterea AI nu este disponibila", { status: admission.status });
+            return res.status(200).json({ reply });
+          }
           const extractionRes = await fetch("https://api.anthropic.com/v1/messages", {
             method: "POST",
             headers: {

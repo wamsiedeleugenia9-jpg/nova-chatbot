@@ -6,6 +6,7 @@ const { appendWhy, creatorDnaFromResponse, creatorDnaRequestOptions, creatorDnaR
 const { authenticatedClient } = require("../../lib/server/supabase");
 const { authorizeFounder } = require("../../lib/server/founderAccess");
 const { AI_FEATURES, recordAnthropicUsage } = require("../../lib/server/aiUsage");
+const { requireAiCallPermit, sendAiAdmissionError, AI_RATE_LIMITED, AI_ADMISSION_UNAVAILABLE } = require("../../lib/server/aiRateLimit");
 
 const MAX_ANSWER_LENGTH = 8000;
 const MAX_ADJUSTMENT_LENGTH = 2000;
@@ -19,6 +20,7 @@ function persistenceErrorMessage(method) {
 async function askClaude(prompt, json, telemetry) {
   if (!process.env.ANTHROPIC_API_KEY) throw new Error("Anthropic server configuration is missing");
   const request = async maxTokens => {
+    await requireAiCallPermit(telemetry.client);
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: { "Content-Type": "application/json", "x-api-key": process.env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01" },
@@ -45,8 +47,9 @@ async function askClaude(prompt, json, telemetry) {
   return text;
 }
 
-async function askCreatorDna(prompt, userId) {
+async function askCreatorDna(prompt, client, userId) {
   if (!process.env.ANTHROPIC_API_KEY) throw new Error("Anthropic server configuration is missing");
+  await requireAiCallPermit(client);
   const response = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: { "Content-Type": "application/json", "x-api-key": process.env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01" },
@@ -112,14 +115,18 @@ async function updateSection(client, userId, atelier, values) {
 }
 
 async function regenerateCreatorDna(client, userId, records) {
-  const sections = await generateCreatorDna(records, userId);
+  const sections = await generateCreatorDna(records, client, userId);
+  await saveCreatorDna(client, userId, sections);
+}
+
+async function saveCreatorDna(client, userId, sections) {
   const saved = await client.from("creator_dna").upsert({ user_id: userId, sections, updated_at: new Date().toISOString() }, { onConflict: "user_id" });
   if (saved.error) throw saved.error;
 }
 
-async function generateCreatorDna(records, userId) {
+async function generateCreatorDna(records, client, userId) {
   const why = records.answers.find(item => item.atelier_number === 8 && item.question_number === 1)?.raw_answer;
-  const generated = await askCreatorDna(creatorDnaPrompt({ sections: records.sections.filter(item => item.atelier_number <= 7), answers: records.answers.filter(item => item.atelier_number <= 7) }), userId);
+  const generated = await askCreatorDna(creatorDnaPrompt({ sections: records.sections.filter(item => item.atelier_number <= 7), answers: records.answers.filter(item => item.atelier_number <= 7) }), client, userId);
   return appendWhy(generated, why);
 }
 
@@ -169,12 +176,12 @@ export default async function handler(req, res) {
       const changed = changedWorkshopAnswers(atelierAnswers, submitted);
       const preparedAnswers = [];
       for (const item of changed) {
-        const interpretation = atelierNumber === 8 ? item.rawAnswer : await askClaude(answerInterpretationPrompt({ question: atelier.questions[item.questionNumber - 1], answer: item.rawAnswer }), false, { userId: user.id, feature: AI_FEATURES.BLUEPRINT_INTERPRETATION });
+        const interpretation = atelierNumber === 8 ? item.rawAnswer : await askClaude(answerInterpretationPrompt({ question: atelier.questions[item.questionNumber - 1], answer: item.rawAnswer }), false, { client, userId: user.id, feature: AI_FEATURES.BLUEPRINT_INTERPRETATION });
         preparedAnswers.push({ question_number: item.questionNumber, raw_answer: item.rawAnswer, interpreted_answer: interpretation });
       }
       const summary = atelierNumber === 8
         ? { summary: submitted[0].rawAnswer, keyElements: [] }
-        : await askClaude(sectionSummaryPrompt({ atelier, answers: submitted }), true, { userId: user.id, feature: AI_FEATURES.BLUEPRINT_SUMMARY });
+        : await askClaude(sectionSummaryPrompt({ atelier, answers: submitted }), true, { client, userId: user.id, feature: AI_FEATURES.BLUEPRINT_SUMMARY });
       const submittedByQuestion = new Map(submitted.map(item => [item.questionNumber, item.rawAnswer]));
       const preparedByQuestion = new Map(preparedAnswers.map(item => [item.question_number, item]));
       const latestRecords = {
@@ -186,7 +193,7 @@ export default async function handler(req, res) {
           ? { ...item, interpreted_summary: summary.summary, key_elements: summary.keyElements }
           : item)
       };
-      const creatorDnaSections = await generateCreatorDna(latestRecords, user.id);
+      const creatorDnaSections = await generateCreatorDna(latestRecords, client, user.id);
       const saved = await client.rpc("save_blueprint_workshop_edit", {
         p_atelier_number: atelierNumber,
         p_answers: preparedAnswers,
@@ -207,16 +214,20 @@ export default async function handler(req, res) {
       let expectedQuestion = 1;
       while (answeredQuestions.has(expectedQuestion)) expectedQuestion += 1;
       if (questionNumber !== expectedQuestion) return res.status(409).json({ error: "Răspunde la întrebarea curentă înainte să continui." });
-      const interpretation = atelierNumber === 8 ? answer : await askClaude(answerInterpretationPrompt({ question: atelier.questions[questionNumber - 1], answer }), false, { userId: user.id, feature: AI_FEATURES.BLUEPRINT_INTERPRETATION });
+      const interpretation = atelierNumber === 8 ? answer : await askClaude(answerInterpretationPrompt({ question: atelier.questions[questionNumber - 1], answer }), false, { client, userId: user.id, feature: AI_FEATURES.BLUEPRINT_INTERPRETATION });
+      let finalSummary = null;
+      if (questionNumber === atelier.questions.length && atelierNumber !== 8) {
+        const completeAnswers = [...atelierAnswers.filter(item => item.question_number !== questionNumber), { questionNumber, rawAnswer: answer }].map(item => ({ questionNumber: item.questionNumber || item.question_number, rawAnswer: item.rawAnswer || item.raw_answer })).sort((a, b) => a.questionNumber - b.questionNumber);
+        finalSummary = await askClaude(sectionSummaryPrompt({ atelier, answers: completeAnswers }), true, { client, userId: user.id, feature: AI_FEATURES.BLUEPRINT_SUMMARY });
+      }
       const saved = await client.from("blueprint_answers").upsert({ user_id: user.id, atelier_number: atelierNumber, question_number: questionNumber, raw_answer: answer, interpreted_answer: interpretation, adjustment_request: null, updated_at: new Date().toISOString() }, { onConflict: "user_id,atelier_number,question_number" });
       if (saved.error) throw saved.error;
       await updateBlueprint(client, user.id, { status: BLUEPRINT_STATUS.IN_PROGRESS });
       await updateSection(client, user.id, atelierNumber, { status: SECTION_STATUS.IN_PROGRESS, interpreted_summary: null, key_elements: null, confirmed_at: null });
       if (questionNumber === atelier.questions.length) {
-        const completeAnswers = [...atelierAnswers.filter(item => item.question_number !== questionNumber), { questionNumber, rawAnswer: answer }].map(item => ({ questionNumber: item.questionNumber || item.question_number, rawAnswer: item.rawAnswer || item.raw_answer })).sort((a, b) => a.questionNumber - b.questionNumber);
         const summary = atelierNumber === 8
           ? { summary: answer, keyElements: [] }
-          : await askClaude(sectionSummaryPrompt({ atelier, answers: completeAnswers }), true, { userId: user.id, feature: AI_FEATURES.BLUEPRINT_SUMMARY });
+          : finalSummary;
         await updateSection(client, user.id, atelierNumber, { interpreted_summary: summary.summary, key_elements: summary.keyElements, status: SECTION_STATUS.IN_PROGRESS });
       }
     } else if (action === "adjust") {
@@ -225,23 +236,30 @@ export default async function handler(req, res) {
       if (!section?.interpreted_summary) return res.status(409).json({ error: "Nu există un rezumat de ajustat." });
       if (!adjustment || adjustment.length > MAX_ADJUSTMENT_LENGTH) return res.status(400).json({ error: "Ajustarea nu este validă." });
       const answers = atelierAnswers.map(item => ({ questionNumber: item.question_number, rawAnswer: item.raw_answer }));
-      const summary = await askClaude(sectionSummaryPrompt({ atelier, answers, currentSummary: section.interpreted_summary, adjustment }), true, { userId: user.id, feature: AI_FEATURES.BLUEPRINT_SUMMARY });
+      const summary = await askClaude(sectionSummaryPrompt({ atelier, answers, currentSummary: section.interpreted_summary, adjustment }), true, { client, userId: user.id, feature: AI_FEATURES.BLUEPRINT_SUMMARY });
       await updateSection(client, user.id, atelierNumber, { interpreted_summary: summary.summary, key_elements: summary.keyElements, status: SECTION_STATUS.REVIEW, confirmed_at: null });
     } else if (action === "summarize") {
       if (atelierAnswers.filter(item => item.raw_answer).length !== atelier.questions.length) return res.status(409).json({ error: "Finalizează toate întrebările înainte de rezumat." });
       const answers = atelierAnswers.map(item => ({ questionNumber: item.question_number, rawAnswer: item.raw_answer }));
       const summary = atelierNumber === 8
         ? { summary: answers[0].rawAnswer, keyElements: [] }
-        : await askClaude(sectionSummaryPrompt({ atelier, answers }), true, { userId: user.id, feature: AI_FEATURES.BLUEPRINT_SUMMARY });
+        : await askClaude(sectionSummaryPrompt({ atelier, answers }), true, { client, userId: user.id, feature: AI_FEATURES.BLUEPRINT_SUMMARY });
       await updateSection(client, user.id, atelierNumber, { interpreted_summary: summary.summary, key_elements: summary.keyElements, status: SECTION_STATUS.IN_PROGRESS, confirmed_at: null });
     } else if (action === "confirm") {
       if (!section?.interpreted_summary) return res.status(409).json({ error: "Nu există un rezumat de confirmat." });
       const confirmedAt = new Date().toISOString();
-      await updateSection(client, user.id, atelierNumber, { status: SECTION_STATUS.COMPLETED, confirmed_at: confirmedAt });
+      let regeneratedSections = null;
       if (records.blueprint?.status === BLUEPRINT_STATUS.COMPLETED) {
-        records = await load(client, user.id);
-        await regenerateCreatorDna(client, user.id, records);
+        const confirmedRecords = {
+          ...records,
+          sections: records.sections.map(item => item.atelier_number === atelierNumber
+            ? { ...item, status: SECTION_STATUS.COMPLETED, confirmed_at: confirmedAt }
+            : item)
+        };
+        regeneratedSections = await generateCreatorDna(confirmedRecords, client, user.id);
       }
+      await updateSection(client, user.id, atelierNumber, { status: SECTION_STATUS.COMPLETED, confirmed_at: confirmedAt });
+      if (regeneratedSections) await saveCreatorDna(client, user.id, regeneratedSections);
     } else if (action === "continue") {
       if (section?.status !== SECTION_STATUS.COMPLETED || atelierNumber >= 8) return res.status(409).json({ error: "Atelierul curent trebuie confirmat mai întâi." });
       await updateBlueprint(client, user.id, { current_atelier: atelierNumber + 1, status: BLUEPRINT_STATUS.IN_PROGRESS });
@@ -269,6 +287,7 @@ export default async function handler(req, res) {
     return res.status(200).json({ ...responsePayload(records, true), paused: action === "pause" });
   } catch (error) {
     console.error("Blueprint API error:", error);
+    if (error?.code === AI_RATE_LIMITED || error?.code === AI_ADMISSION_UNAVAILABLE) return sendAiAdmissionError(res, error);
     return res.status(500).json({ error: persistenceErrorMessage(req.method) });
   }
 }
