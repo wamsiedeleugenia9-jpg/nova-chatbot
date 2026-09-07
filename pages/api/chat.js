@@ -16,6 +16,7 @@ import {
 import { EWA_CORE_BEHAVIOR } from "../../lib/prompts/ewaCoreBehavior";
 import { claimChatRequest, completeChatRequest, loadChatContext, loadChatHistory } from "../../lib/chat/history";
 import { AI_FEATURES, recordAnthropicUsage } from "../../lib/server/aiUsage";
+import { formatMainChatResponse } from "../../lib/chat/mainResponse";
 
 const SYSTEM_PROMPT = `${EWA_CORE_BEHAVIOR}
 
@@ -27,6 +28,9 @@ Mesajele de conversatie libera furnizate in array-ul Anthropic \`messages\` repr
 Raspunde natural la intrebarile utilizatorului si nu explica arhitectura interna decat daca ti se cere explicit. In conversatia obisnuita evita termenii interni inutili precum „Anthropic messages”, „Creator DNA”, „Creator Blueprint”, „Working Memory”, „persistent context”, „database”, „Supabase” sau „browser session”.
 
 STIL DE LUCRU
+- Raspunde direct cererii curente si prioritizeaza urmatorul pas util.
+- Evita repetitiile inutile si listele supradimensionate, exceptand cazul in care utilizatorul cere explicit detalii.
+- Nu scurta artificial un livrabil detaliat cerut de utilizator.
 - Foloseste limbaj simplu si practic.
 - Prioritizeaza o recomandare clara cand contextul permite o alegere responsabila.
 - Nu coplesi utilizatorul cu liste lungi de optiuni. Daca exista mai multe variante bune, recomanda una si explica pe scurt de ce.
@@ -191,7 +195,7 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         model: "claude-sonnet-4-6",
-        max_tokens: 1000,
+        max_tokens: 1500,
         system: systemPromptWithWorkingMemory(
           systemPromptWithCreatorBlueprint(
             systemPromptWithCreatorDna(SYSTEM_PROMPT, creatorDna),
@@ -211,7 +215,7 @@ export default async function handler(req, res) {
 
     const data = await anthropicRes.json();
     await recordAnthropicUsage({ userId: auth.user.id, feature: AI_FEATURES.CHAT, response: data });
-    const reply = data.content?.[0]?.text || "Nu am putut genera un raspuns. Incearca din nou.";
+    const { reply, isTruncated } = formatMainChatResponse(data);
 
     try {
       await completeChatRequest(auth.client, requestId, message, reply);
@@ -223,37 +227,39 @@ export default async function handler(req, res) {
     // Working Memory persistence remains best-effort and happens only after the
     // durable chat exchange was saved. Extraction/database errors cannot turn a
     // successfully saved chat into an error response.
-    try {
-      const latestUserMessage = [...messages].reverse().find(message => message.role === "user")?.content;
-      if (latestUserMessage) {
-        const extractionRes = await fetch("https://api.anthropic.com/v1/messages", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-api-key": process.env.ANTHROPIC_API_KEY,
-            "anthropic-version": "2023-06-01"
-          },
-          body: JSON.stringify(memoryExtractionRequest(latestUserMessage, reply))
-        });
+    if (!isTruncated) {
+      try {
+        const latestUserMessage = [...messages].reverse().find(message => message.role === "user")?.content;
+        if (latestUserMessage) {
+          const extractionRes = await fetch("https://api.anthropic.com/v1/messages", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "x-api-key": process.env.ANTHROPIC_API_KEY,
+              "anthropic-version": "2023-06-01"
+            },
+            body: JSON.stringify(memoryExtractionRequest(latestUserMessage, reply))
+          });
 
-        if (!extractionRes.ok) {
-          console.error("Extractia Working Memory a esuat:", extractionRes.status);
-        } else {
-          const extractionData = await extractionRes.json();
-          await recordAnthropicUsage({ userId: auth.user.id, feature: AI_FEATURES.MEMORY, response: extractionData });
-          const extractionText = extractionData.content?.[0]?.text;
-          // This text is emitted under Anthropic's strict json_schema output
-          // contract; local validation remains mandatory before persistence.
-          const extraction = typeof extractionText === "string"
-            ? validateExtraction(JSON.parse(extractionText))
-            : null;
-          if (extraction) {
-            await saveExtractedMemory(auth.client, auth.user.id, extraction, workingMemory, latestUserMessage);
+          if (!extractionRes.ok) {
+            console.error("Extractia Working Memory a esuat:", extractionRes.status);
+          } else {
+            const extractionData = await extractionRes.json();
+            await recordAnthropicUsage({ userId: auth.user.id, feature: AI_FEATURES.MEMORY, response: extractionData });
+            const extractionText = extractionData.content?.[0]?.text;
+            // This text is emitted under Anthropic's strict json_schema output
+            // contract; local validation remains mandatory before persistence.
+            const extraction = typeof extractionText === "string"
+              ? validateExtraction(JSON.parse(extractionText))
+              : null;
+            if (extraction) {
+              await saveExtractedMemory(auth.client, auth.user.id, extraction, workingMemory, latestUserMessage);
+            }
           }
         }
+      } catch (error) {
+        console.error("Eroare non-critica la actualizarea Working Memory:", error);
       }
-    } catch (error) {
-      console.error("Eroare non-critica la actualizarea Working Memory:", error);
     }
 
     return res.status(200).json({ reply });
