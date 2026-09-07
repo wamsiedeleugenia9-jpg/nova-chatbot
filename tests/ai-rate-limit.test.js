@@ -6,6 +6,7 @@ const { admitAiCall, requireAiCallPermit, sendAiAdmissionError, AI_RATE_LIMITED,
 
 const root = join(__dirname, "..");
 const migration = readFileSync(join(root, "supabase/migrations/20260907000000_create_ai_rate_limit.sql"), "utf8");
+const correctiveMigration = readFileSync(join(root, "supabase/migrations/20260907010000_fix_ai_rate_limit_current_time_collision.sql"), "utf8");
 const chat = readFileSync(join(root, "pages/api/chat.js"), "utf8");
 const blueprint = readFileSync(join(root, "pages/api/blueprint.js"), "utf8");
 
@@ -73,6 +74,15 @@ test("migration implements one locked 30-call, 60-second bucket per authenticate
   assert.match(migration, /set window_started_at = current_time, call_count = 1/);
   assert.match(migration, /greatest\(1, ceil\(extract\(epoch/);
   assert.match(migration, /on conflict \(user_id\) do nothing/);
+});
+
+test("corrective migration avoids the PostgreSQL current_time identifier collision", () => {
+  const functionBody = correctiveMigration.match(/create or replace function public\.consume_ai_call_permit\(\)[\s\S]*?\$\$;/)[0];
+  assert.doesNotMatch(functionBody, /\bcurrent_time\b/i);
+  assert.match(functionBody, /current_timestamp_value timestamptz := statement_timestamp\(\)/);
+  assert.match(functionBody, /values \(current_user_id, current_timestamp_value, 0\)/);
+  assert.match(functionBody, /set window_started_at = current_timestamp_value, call_count = 1/);
+  assert.match(functionBody, /interval '60 seconds' - current_timestamp_value/);
 });
 
 test("rate-limit state has no browser CRUD access and only narrow RPC execution", () => {
