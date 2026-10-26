@@ -74,7 +74,7 @@ acest helper, iar rutele exclusiv administrative pot folosi `requireAdmin`.
 
 ## Creator Blueprint
 
-Creator Blueprint Phase 3 contine Atelierele 1–7.
+Creator Blueprint Phase 3 contine Atelierele 1–8.
 
 Atelierul 8 si generarea Creator DNA sunt implementate.
 
